@@ -4,3 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+tsnat-parse = { path = "../tsnat-parse" }
+
+[[test]]
+name = "token_test"
+path = "../../tests/phase1/token_test.rs"

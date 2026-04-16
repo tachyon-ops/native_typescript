@@ -285,6 +285,9 @@ version = "0.1.0"
 [[package]]
 name = "tsnat-lex"
 version = "0.1.0"
+dependencies = [
+ "tsnat-parse",
+]
 
 [[package]]
 name = "tsnat-parse"
