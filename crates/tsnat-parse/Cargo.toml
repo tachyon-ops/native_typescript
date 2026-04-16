@@ -4,3 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+rustc-hash = { workspace = true }
+
+[[test]]
+name = "span_test"
+path = "../../tests/phase1/span_test.rs"
+
+[[test]]
+name = "interner_test"
+path = "../../tests/phase1/interner_test.rs"
