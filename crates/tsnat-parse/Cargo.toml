@@ -5,6 +5,8 @@ edition = "2024"
 
 [dependencies]
 rustc-hash = { workspace = true }
+thiserror = { workspace = true }
+miette = { workspace = true }
 
 [[test]]
 name = "span_test"
@@ -13,3 +15,7 @@ path = "../../tests/phase1/span_test.rs"
 [[test]]
 name = "interner_test"
 path = "../../tests/phase1/interner_test.rs"
+
+[[test]]
+name = "diagnostic_test"
+path = "../../tests/phase1/diagnostic_test.rs"
