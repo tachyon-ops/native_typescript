@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use tsnat_parse::span::{SourceMap, Span};
+use tsnat_common::span::{SourceMap, Span};
 
 #[test]
 fn test_span_line_col() {

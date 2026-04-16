@@ -1,6 +1,6 @@
 use tsnat_lex::lexer::Lexer;
 use tsnat_lex::token::TokenKind;
-use tsnat_parse::interner::Interner;
+use tsnat_common::interner::Interner;
 
 #[test]
 fn test_lex_smoke() {

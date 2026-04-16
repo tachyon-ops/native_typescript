@@ -7,6 +7,9 @@ edition = "2024"
 rustc-hash = { workspace = true }
 thiserror = { workspace = true }
 miette = { workspace = true }
+tsnat-common = { path = "../tsnat-common" }
+tsnat-lex = { path = "../tsnat-lex" }
+bumpalo = { workspace = true }
 
 [[test]]
 name = "span_test"
@@ -19,3 +22,8 @@ path = "../../tests/phase1/interner_test.rs"
 [[test]]
 name = "diagnostic_test"
 path = "../../tests/phase1/diagnostic_test.rs"
+
+[[test]]
+name = "parser_var_smoke"
+path = "../../tests/phase1/parser_var_smoke.rs"
+

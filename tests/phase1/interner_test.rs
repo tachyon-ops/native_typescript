@@ -1,4 +1,4 @@
-use tsnat_parse::interner::Interner;
+use tsnat_common::interner::Interner;
 
 #[test]
 fn test_interner() {

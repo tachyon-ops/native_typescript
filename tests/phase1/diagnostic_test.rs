@@ -1,5 +1,5 @@
-use tsnat_parse::diagnostic::TsnatError;
-use tsnat_parse::span::Span;
+use tsnat_common::diagnostic::TsnatError;
+use tsnat_common::span::Span;
 
 #[test]
 fn test_diagnostic_formatting() {

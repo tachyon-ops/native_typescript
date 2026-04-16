@@ -1,6 +1,6 @@
 use std::fmt;
-use tsnat_parse::interner::Symbol;
-use tsnat_parse::span::Span;
+use tsnat_common::interner::Symbol;
+use tsnat_common::span::Span;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[non_exhaustive]

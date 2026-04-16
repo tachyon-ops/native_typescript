@@ -48,6 +48,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c4512299f36f043ab09a583e57bceb5a5aab7a73db1805848e8fef3c9e8c78b3"
 
 [[package]]
+name = "bumpalo"
+version = "3.20.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5d20789868f4b01b2f2caec9f5c4e0213b41e3e5702a50157d699ae31ced2fcb"
+
+[[package]]
 name = "cfg-if"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -271,6 +277,15 @@ name = "tsnat-codegen"
 version = "0.1.0"
 
 [[package]]
+name = "tsnat-common"
+version = "0.1.0"
+dependencies = [
+ "miette",
+ "rustc-hash",
+ "thiserror",
+]
+
+[[package]]
 name = "tsnat-eval"
 version = "0.1.0"
 
@@ -286,16 +301,19 @@ version = "0.1.0"
 name = "tsnat-lex"
 version = "0.1.0"
 dependencies = [
- "tsnat-parse",
+ "tsnat-common",
 ]
 
 [[package]]
 name = "tsnat-parse"
 version = "0.1.0"
 dependencies = [
+ "bumpalo",
  "miette",
  "rustc-hash",
  "thiserror",
+ "tsnat-common",
+ "tsnat-lex",
 ]
 
 [[package]]

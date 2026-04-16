@@ -1,6 +1,6 @@
-use tsnat_parse::diagnostic::{TsnatError, TsnatResult};
-use tsnat_parse::interner::{Interner, Symbol, SYM_EMPTY};
-use tsnat_parse::span::Span;
+use tsnat_common::diagnostic::{TsnatError, TsnatResult};
+use tsnat_common::interner::{Interner, Symbol, SYM_EMPTY};
+use tsnat_common::span::Span;
 
 use crate::token::{Token, TokenKind};
 
