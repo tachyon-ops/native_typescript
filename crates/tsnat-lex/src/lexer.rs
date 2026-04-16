@@ -271,6 +271,10 @@ impl<'src> Lexer<'src> {
             "any" => TokenKind::KwAny,
             "object" => TokenKind::KwObject,
             "symbol" => TokenKind::KwSymbol,
+            "number" => TokenKind::KwNumber,
+            "string" => TokenKind::KwString,
+            "boolean" => TokenKind::KwBoolean,
+            "bigint" => TokenKind::KwBigInt,
             "intrinsic" => TokenKind::KwIntrinsic,
             _ => TokenKind::Ident,
         }

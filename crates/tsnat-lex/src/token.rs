@@ -33,6 +33,7 @@ pub enum TokenKind {
     KwAbstract, KwOverride, KwReadonly, KwKeyof, KwInfer,
     KwIs, KwAsserts, KwPublic, KwPrivate, KwProtected,
     KwNever, KwUnknown, KwAny, KwObject, KwSymbol,
+    KwNumber, KwString, KwBoolean, KwBigInt,
     KwIntrinsic,
 
     // ── Punctuation ───────────────────────────────────
@@ -143,6 +144,10 @@ impl fmt::Display for TokenKind {
             Self::KwAny => "any",
             Self::KwObject => "object",
             Self::KwSymbol => "symbol",
+            Self::KwNumber => "number",
+            Self::KwString => "string",
+            Self::KwBoolean => "boolean",
+            Self::KwBigInt => "bigint",
             Self::KwIntrinsic => "intrinsic",
             Self::LParen => "(",
             Self::RParen => ")",
