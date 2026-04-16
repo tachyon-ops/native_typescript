@@ -9,3 +9,7 @@ tsnat-parse = { path = "../tsnat-parse" }
 [[test]]
 name = "token_test"
 path = "../../tests/phase1/token_test.rs"
+
+[[test]]
+name = "lex_smoke"
+path = "../../tests/phase1/lex_smoke.rs"
