@@ -355,6 +355,15 @@ version = "0.1.0"
 [[package]]
 name = "tsnat-types"
 version = "0.1.0"
+dependencies = [
+ "bumpalo",
+ "indexmap",
+ "rustc-hash",
+ "thiserror",
+ "tsnat-common",
+ "tsnat-lex",
+ "tsnat-parse",
+]
 
 [[package]]
 name = "unicode-ident"

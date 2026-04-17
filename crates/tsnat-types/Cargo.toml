@@ -4,3 +4,20 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+tsnat-common = { path = "../tsnat-common" }
+tsnat-parse = { path = "../tsnat-parse" }
+indexmap = { workspace = true }
+rustc-hash = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+tsnat-lex = { path = "../tsnat-lex" }
+bumpalo = { workspace = true }
+
+[[test]]
+name = "check_primitives"
+path = "../../tests/phase3/check_primitives.rs"
+
+[[test]]
+name = "check_objects"
+path = "../../tests/phase3/check_objects.rs"
