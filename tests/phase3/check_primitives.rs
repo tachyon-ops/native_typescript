@@ -3,7 +3,7 @@ use tsnat_types::assignability::AssignabilityChecker;
 
 #[test]
 fn test_primitive_assignability() {
-    let mut arena = TypeArena::new();
+    let arena = TypeArena::new();
     let checker = AssignabilityChecker::new(&arena);
 
     // Number

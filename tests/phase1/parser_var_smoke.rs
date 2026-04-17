@@ -5,6 +5,7 @@ use tsnat_parse::parser::Parser;
 use tsnat_parse::ast::*;
 use bumpalo::Bump;
 
+#[allow(dead_code)]
 fn parse_expr_str(src: &str) -> String {
     let mut interner = Interner::new();
     let mut sm = SourceMap::new();

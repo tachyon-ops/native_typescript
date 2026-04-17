@@ -7,7 +7,7 @@ echo ""
 
 # Ensure we have build dependencies
 echo "Installing prerequisites (requires sudo)..."
-sudo apt-get update && sudo apt-get install -y cmake ninja-build build-essential git libasound2-dev libpulse-dev libaudio-dev libjack-dev libsndio-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev libxtst-dev
+sudo apt-get update && sudo apt-get install -y cmake ninja-build build-essential git libasound2-dev libpulse-dev libaudio-dev libjack-dev libsndio-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev fcitx-libs-dev libxtst-dev libfreetype6-dev clang libclang-dev
 
 TEMP_DIR=$(mktemp -d)
 cd "$TEMP_DIR"

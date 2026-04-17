@@ -1,7 +1,6 @@
 use std::path::PathBuf;
-use libloading::{Library, Symbol as LibSymbol};
+use libloading::Library;
 use std::collections::HashMap;
-use tsnat_common::interner::Symbol;
 use std::sync::RwLock;
 use thiserror::Error;
 

@@ -1,7 +1,7 @@
 use tsnat_types::ty::{TypeArena, TYPE_NUMBER, TYPE_STRING, Type, ObjectType, PropertyType};
 use tsnat_types::assignability::AssignabilityChecker;
 use indexmap::IndexMap;
-use tsnat_common::interner::{Interner, Symbol};
+use tsnat_common::interner::Interner;
 
 #[test]
 fn test_object_assignability() {

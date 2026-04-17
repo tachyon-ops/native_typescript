@@ -1,4 +1,4 @@
-use tsnat_types::ty::{TypeArena, TypeId, Type, GenericType, TypeParamDecl, TYPE_NUMBER, TYPE_STRING, TYPE_BOOLEAN};
+use tsnat_types::ty::{TypeArena, Type, GenericType, TypeParamDecl, TYPE_NUMBER, TYPE_STRING, TYPE_BOOLEAN};
 use tsnat_types::assignability::AssignabilityChecker;
 use tsnat_types::infer::TypeInferencer;
 use tsnat_common::interner::Interner;

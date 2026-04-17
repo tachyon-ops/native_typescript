@@ -1,4 +1,4 @@
-use crate::ty::{TypeArena, TypeId, Type, TYPE_NEVER, TYPE_ANY, TYPE_UNKNOWN};
+use crate::ty::{TypeArena, TypeId, Type};
 
 pub struct AssignabilityChecker<'a> {
     arena: &'a TypeArena,

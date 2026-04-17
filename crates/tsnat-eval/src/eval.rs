@@ -6,7 +6,6 @@ use tsnat_common::span::Span;
 use tsnat_parse::ast::*;
 use crate::value::{Value, JsObject, JsFunction};
 use crate::env::Environment;
-use rustc_hash::FxHashMap;
 use indexmap::IndexMap;
 
 pub enum ControlFlow<'a> {

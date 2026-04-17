@@ -28,6 +28,7 @@ fn build_dummy_lib() -> PathBuf {
     path
 }
 
+#[allow(dead_code)]
 fn run_eval(src: &str, lib_path: &PathBuf) -> Value<'static> {
     // Inject the exact path into the string for the import statement
     let final_src = src.replace("LIB_PATH", lib_path.to_str().unwrap());

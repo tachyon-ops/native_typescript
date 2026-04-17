@@ -1,6 +1,6 @@
 use std::ffi::CString;
 use std::ptr;
-use sdl3_sys::{SDL_Window, SDL_Renderer, SDL_Init, SDL_INIT_VIDEO, SDL_CreateWindow, SDL_CreateRenderer, SDL_Quit, SDL_DestroyRenderer, SDL_DestroyWindow, SDL_Event, SDL_PollEvent, SDL_EVENT_QUIT, SDL_RenderClear, SDL_RenderPresent, SDL_SetRenderDrawColor};
+use sdl3_sys::everything::{SDL_Window, SDL_Renderer, SDL_Init, SDL_INIT_VIDEO, SDL_CreateWindow, SDL_CreateRenderer, SDL_Quit, SDL_DestroyRenderer, SDL_DestroyWindow, SDL_Event, SDL_PollEvent, SDL_RenderClear, SDL_RenderPresent, SDL_SetRenderDrawColor};
 use tsnat_common::diagnostic::{TsnatResult, TsnatError};
 
 pub enum NativeEvent {
@@ -29,7 +29,7 @@ impl Window {
             
             // In SDL3, SDL_CreateWindow only takes 3 arguments: title, width, height, flags
             // Actually let's assume it takes (title, width, height, flags)
-            let sdl_window = SDL_CreateWindow(title_cstr.as_ptr(), width as i32, height as i32, 0);
+            let sdl_window = SDL_CreateWindow(title_cstr.as_ptr(), width as i32, height as i32, sdl3_sys::video::SDL_WindowFlags(0));
             if sdl_window.is_null() {
                 return Err(TsnatError::Runtime {
                     message: "Failed to create SDL3 window".into(),
@@ -58,7 +58,7 @@ impl Window {
     }
     
     pub fn poll_events(&mut self) -> Vec<NativeEvent> {
-        let mut events = Vec::new();
+        let events = Vec::new();
         let mut evt: SDL_Event = unsafe { std::mem::zeroed() };
         
         unsafe {

@@ -3,7 +3,6 @@ use tsnat_lex::lexer::Lexer;
 use tsnat_lex::token::TokenKind;
 use tsnat_common::interner::Interner;
 use tsnat_eval::evaluate;
-use tsnat_eval::value::Value;
 use bumpalo::Bump;
 
 fn eval_string(source: &str) -> String {
