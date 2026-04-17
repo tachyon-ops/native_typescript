@@ -1,4 +1,3 @@
-use std::fmt;
 use indexmap::IndexMap;
 use tsnat_common::interner::Symbol;
 
@@ -46,6 +45,21 @@ pub enum Type {
     // Combinators
     Union(Vec<TypeId>),
     Intersection(Vec<TypeId>),
+
+    // Generics & Inference
+    TypeParam(TypeParamDecl),
+    Generic(GenericType),
+
+    // Conditionals & Mapping
+    Conditional(ConditionalType),
+    Mapped(MappedType),
+    IndexedAccess(TypeId, TypeId), // T[K]
+    TemplateLiteral(TemplateLiteralType),
+
+    // Intrinsic helpers
+    Keyof(TypeId),
+    Typeof(TypeId),
+    Infer(Symbol),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -71,6 +85,41 @@ pub struct ParamType {
     pub name: Symbol,
     pub ty: TypeId,
     pub optional: bool,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct TypeParamDecl {
+    pub name: Symbol,
+    pub constraint: Option<TypeId>,
+    pub default: Option<TypeId>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct GenericType {
+    pub target: TypeId,
+    pub args: Vec<TypeId>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ConditionalType {
+    pub check_type: TypeId,
+    pub extends_type: TypeId,
+    pub true_type: TypeId,
+    pub false_type: TypeId,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct MappedType {
+    pub type_param: TypeParamDecl, // The K in keyof T
+    pub type_def: TypeId,          // The T[K] part
+    pub readonly_mod: Option<bool>, // true = +readonly, false = -readonly
+    pub optional_mod: Option<bool>, // true = +?, false = -?
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct TemplateLiteralType {
+    pub quasis: Vec<Symbol>, // String parts
+    pub exprs: Vec<TypeId>,  // Interpolated types
 }
 
 #[derive(Default)]

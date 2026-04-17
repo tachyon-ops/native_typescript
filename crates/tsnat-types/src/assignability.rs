@@ -102,7 +102,47 @@ impl<'a> AssignabilityChecker<'a> {
                 true
             }
 
+            // TypeParams
+            (Type::TypeParam(_), Type::TypeParam(_)) => {
+                // strict identity check for uninstantiated params usually
+                // In a real checker, this involves checking environments. We default to false if not identical.
+                false // Identity is handled at the start
+            }
+            (_src, Type::TypeParam(_)) => {
+                // We cannot assign TO a type parameter unless it's the exact same type parameter (handled by identity)
+                // or if it has a lower bound (not implemented). But we cannot assign to it based on its upper bound constraint!
+                false
+            }
+            (Type::TypeParam(p), _tgt) => {
+                if let Some(constraint) = p.constraint {
+                    self.is_assignable(constraint, target)
+                } else {
+                    false
+                }
+            }
+
+            // Generics bounds checking (lazy deep structural evaluation)
+            // Note: For Phase 3B, a generic like `Array<string>` <: `Array<string>`.
+            // The structural extraction handles the deeper logic.
+            (Type::Generic(src_gen), Type::Generic(tgt_gen)) => {
+                if src_gen.target != tgt_gen.target {
+                    return false;
+                }
+                if src_gen.args.len() != tgt_gen.args.len() {
+                    return false;
+                }
+                // Check argument variance (we will assume invariant for simplicity here)
+                for (i, src_arg) in src_gen.args.iter().enumerate() {
+                    let tgt_arg = tgt_gen.args[i];
+                    if !self.is_assignable(*src_arg, tgt_arg) && !self.is_assignable(tgt_arg, *src_arg) {
+                        return false; // invariant check
+                    }
+                }
+                true
+            }
+
             _ => false,
         }
     }
 }
+

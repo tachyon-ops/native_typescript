@@ -21,3 +21,11 @@ path = "../../tests/phase3/check_primitives.rs"
 [[test]]
 name = "check_objects"
 path = "../../tests/phase3/check_objects.rs"
+
+[[test]]
+name = "check_generics"
+path = "../../tests/phase3/check_generics.rs"
+
+[[test]]
+name = "check_conditionals"
+path = "../../tests/phase3/check_conditionals.rs"

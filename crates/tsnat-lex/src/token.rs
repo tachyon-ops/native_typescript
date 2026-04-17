@@ -29,7 +29,7 @@ pub enum TokenKind {
     KwUsing, KwStatic,
 
     // Type keywords
-    KwType, KwInterface, KwNamespace, KwModule, KwDeclare,
+    KwType, KwInterface, KwNamespace, KwModule, KwDeclare, KwNative,
     KwAbstract, KwOverride, KwReadonly, KwKeyof, KwInfer,
     KwIs, KwAsserts, KwPublic, KwPrivate, KwProtected,
     KwNever, KwUnknown, KwAny, KwObject, KwSymbol,
@@ -129,6 +129,7 @@ impl fmt::Display for TokenKind {
             Self::KwNamespace => "namespace",
             Self::KwModule => "module",
             Self::KwDeclare => "declare",
+            Self::KwNative => "native",
             Self::KwAbstract => "abstract",
             Self::KwOverride => "override",
             Self::KwReadonly => "readonly",

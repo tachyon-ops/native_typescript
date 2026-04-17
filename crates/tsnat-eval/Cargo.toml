@@ -6,6 +6,8 @@ edition = "2024"
 [dependencies]
 tsnat-common = { path = "../tsnat-common" }
 tsnat-parse = { path = "../tsnat-parse" }
+tsnat-types = { path = "../tsnat-types" }
+tsnat-ffi = { path = "../tsnat-ffi" }
 rustc-hash = { workspace = true }
 indexmap = { workspace = true }
 thiserror = { workspace = true }
@@ -15,6 +17,10 @@ bumpalo = { workspace = true }
 [[test]]
 name = "eval_smoke"
 path = "../../tests/phase2/eval_smoke.rs"
+
+[[test]]
+name = "eval_ffi"
+path = "tests/eval_ffi.rs"
 
 [dev-dependencies]
 tsnat-lex = { path = "../tsnat-lex" }

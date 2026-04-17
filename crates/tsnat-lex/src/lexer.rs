@@ -256,6 +256,7 @@ impl<'src> Lexer<'src> {
             "namespace" => TokenKind::KwNamespace,
             "module" => TokenKind::KwModule,
             "declare" => TokenKind::KwDeclare,
+            "native" => TokenKind::KwNative,
             "abstract" => TokenKind::KwAbstract,
             "override" => TokenKind::KwOverride,
             "readonly" => TokenKind::KwReadonly,

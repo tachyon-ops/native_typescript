@@ -68,7 +68,24 @@ impl<'src, 'arena> Parser<'src, 'arena> {
                 Ok(Stmt::Function(self.parse_function_decl(true)?))
             }
             TokenKind::KwClass => Ok(Stmt::Class(self.parse_class_decl(true)?)),
-            TokenKind::KwImport => Ok(Stmt::Import(self.parse_import_decl()?)),
+            TokenKind::KwImport => {
+                if self.peek_ahead(1).kind == TokenKind::KwNative {
+                    Ok(Stmt::NativeImport(self.parse_native_import_decl()?))
+                } else {
+                    Ok(Stmt::Import(self.parse_import_decl()?))
+                }
+            }
+            TokenKind::KwDeclare => {
+                if self.peek_ahead(1).kind == TokenKind::KwNative && self.peek_ahead(2).kind == TokenKind::KwFunction {
+                    Ok(Stmt::NativeFunction(self.parse_native_function_decl()?))
+                } else {
+                    let span = self.peek().span;
+                    Err(TsnatError::Parse {
+                        message: "Expected 'native function'".into(),
+                        span,
+                    })
+                }
+            }
             TokenKind::KwExport => Ok(Stmt::Export(self.parse_export_decl()?)),
             TokenKind::Ident if self.peek_ahead(1).kind == TokenKind::Colon => {
                 Ok(Stmt::Labeled(self.parse_labeled_stmt()?))
@@ -566,6 +583,53 @@ impl<'src, 'arena> Parser<'src, 'arena> {
             TokenKind::KwProtected => { self.advance(); Some(AccessModifier::Protected) }
             _ => None,
         }
+    }
+
+    fn parse_native_import_decl(&mut self) -> TsnatResult<NativeImportDecl> {
+        let start = self.expect(TokenKind::KwImport)?.span;
+        self.expect(TokenKind::KwNative)?;
+        let name = self.expect(TokenKind::Ident)?.value;
+        self.expect(TokenKind::KwFrom)?;
+        let source = self.expect(TokenKind::String)?.value;
+        self.match_kind(TokenKind::Semicolon);
+
+        Ok(NativeImportDecl {
+            name,
+            source,
+            span: start.merge(self.tokens[self.pos - 1].span),
+        })
+    }
+
+    fn parse_native_function_decl(&mut self) -> TsnatResult<NativeFunctionDecl<'arena>> {
+        let start = self.expect(TokenKind::KwDeclare)?.span;
+        self.expect(TokenKind::KwNative)?;
+        self.expect(TokenKind::KwFunction)?;
+        
+        let name = self.expect(TokenKind::Ident)?.value;
+        self.expect(TokenKind::LParen)?;
+        
+        let mut params = Vec::new();
+        while self.peek().kind != TokenKind::RParen && !self.is_at_end() {
+             params.push(self.parse_param()?);
+             if self.peek().kind == TokenKind::Comma {
+                 self.advance();
+             }
+        }
+        self.expect(TokenKind::RParen)?;
+        
+        let mut return_type = None;
+        if self.match_kind(TokenKind::Colon) {
+             return_type = Some(self.parse_type_node()?);
+        }
+        
+        self.match_kind(TokenKind::Semicolon);
+        
+        Ok(NativeFunctionDecl {
+            name,
+            params: self.arena.alloc_slice_fill_iter(params),
+            return_type: return_type.map(|t| self.alloc(t)),
+            span: start.merge(self.tokens[self.pos - 1].span),
+        })
     }
 
     fn parse_import_decl(&mut self) -> TsnatResult<ImportDecl<'arena>> {

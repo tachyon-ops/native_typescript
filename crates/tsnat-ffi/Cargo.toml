@@ -4,3 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+tsnat-common = { path = "../tsnat-common" }
+libloading = { workspace = true }
+libffi = { workspace = true }
+rustc-hash = { workspace = true }
+thiserror = { workspace = true }

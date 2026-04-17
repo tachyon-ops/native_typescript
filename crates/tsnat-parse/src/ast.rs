@@ -39,6 +39,23 @@ pub enum Stmt<'a> {
     Class(ClassDecl<'a>),
     Import(ImportDecl<'a>),
     Export(ExportDecl<'a>),
+    NativeImport(NativeImportDecl),
+    NativeFunction(NativeFunctionDecl<'a>),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct NativeImportDecl {
+    pub name: Symbol,
+    pub source: Symbol,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct NativeFunctionDecl<'a> {
+    pub name: Symbol,
+    pub params: NodeList<'a, super::ast::Param<'a>>,
+    pub return_type: Option<&'a super::ast::TypeNode<'a>>,
+    pub span: Span,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -558,6 +575,8 @@ impl<'a> Stmt<'a> {
             Stmt::Class(s) => s.span,
             Stmt::Import(s) => s.span,
             Stmt::Export(s) => s.span,
+            Stmt::NativeImport(s) => s.span,
+            Stmt::NativeFunction(s) => s.span,
         }
     }
 }

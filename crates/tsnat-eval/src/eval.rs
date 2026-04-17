@@ -19,11 +19,13 @@ pub enum ControlFlow<'a> {
 pub struct Evaluator<'a, 'src> {
     pub env: Rc<RefCell<Environment<'a>>>,
     pub interner: &'src mut Interner,
+    pub ffi_loader: std::sync::Arc<tsnat_ffi::loader::NativeLibraryLoader>,
 }
 
 impl<'a, 'src> Evaluator<'a, 'src> {
     pub fn new(interner: &'src mut Interner) -> Self {
         let global_env = Rc::new(RefCell::new(Environment::new(None)));
+        let ffi_loader = std::sync::Arc::new(tsnat_ffi::loader::NativeLibraryLoader::new());
         
         // Inject console.log
         let console = Rc::new(RefCell::new(JsObject {
@@ -52,6 +54,7 @@ impl<'a, 'src> Evaluator<'a, 'src> {
         Self {
             env: global_env,
             interner,
+            ffi_loader,
         }
     }
 
@@ -143,6 +146,59 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                     closure: self.env.clone(),
                 });
                 self.env.borrow_mut().define(name, Value::Function(func));
+                Ok(ControlFlow::Normal(Value::Undefined))
+            }
+            Stmt::NativeImport(i) => {
+                let name = self.interner.get(i.name).to_string();
+                let source = self.interner.get(i.source);
+                let mut path = std::path::PathBuf::from(source);
+                if path.extension().is_none() {
+                    path.set_extension(std::env::consts::DLL_EXTENSION);
+                }
+                
+                self.ffi_loader.load_library(&name, path).map_err(|e| TsnatError::Runtime {
+                    message: format!("FFI Load Error: {}", e),
+                    span: Some(i.span),
+                })?;
+                
+                Ok(ControlFlow::Normal(Value::Undefined))
+            }
+            Stmt::NativeFunction(f) => {
+                let func_name = self.interner.get(f.name).to_string();
+                let func_name_sym = f.name;
+                
+                let loader = self.ffi_loader.clone();
+                let span = f.span;
+                
+                let native_fn = Value::NativeFunction(Rc::new(move |args, _| {
+                    let ptr = loader.resolve_symbol(&func_name).map_err(|e| TsnatError::Runtime {
+                        message: format!("FFI Symbol Error: {}", e),
+                        span: Some(span),
+                    })?;
+                    // Convert args
+                    let mut ffi_args = Vec::new();
+                    for a in &args {
+                        match a {
+                            Value::Number(n) => ffi_args.push(tsnat_ffi::invoke::FfiValue::Number(*n)),
+                            Value::Bool(b) => ffi_args.push(tsnat_ffi::invoke::FfiValue::Bool(*b)),
+                            Value::String(s) => ffi_args.push(tsnat_ffi::invoke::FfiValue::String(s.as_ref())),
+                            Value::Null => ffi_args.push(tsnat_ffi::invoke::FfiValue::Null),
+                            Value::Undefined => ffi_args.push(tsnat_ffi::invoke::FfiValue::Undefined),
+                            _ => return Err(TsnatError::Runtime { message: "Unsupported FFI argument type".into(), span: Some(span) }),
+                        }
+                    }
+                    
+                    let res = tsnat_ffi::invoke::invoke_native(ptr, &ffi_args).map_err(|e| {
+                        TsnatError::Runtime { message: format!("FFI Call Error: {}", e), span: Some(span) }
+                    })?;
+                    
+                    match res {
+                        tsnat_ffi::invoke::FfiValue::Number(n) => Ok(Value::Number(n)),
+                        tsnat_ffi::invoke::FfiValue::Bool(b) => Ok(Value::Bool(b)),
+                        _ => Ok(Value::Undefined),
+                    }
+                }));
+                self.env.borrow_mut().define(func_name_sym, native_fn);
                 Ok(ControlFlow::Normal(Value::Undefined))
             }
             _ => Err(TsnatError::Runtime {
