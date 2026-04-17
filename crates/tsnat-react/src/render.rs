@@ -28,7 +28,10 @@ impl Application {
     pub fn new(title: &str, width: u32, height: u32) -> Result<Self, String> {
         let window = Window::create(title, width, height).map_err(|e| format!("{:?}", e))?;
         let layout = LayoutTree::new();
-        let font_renderer = FontRenderer::new().map_err(|e| format!("{:?}", e))?;
+        let mut font_renderer = FontRenderer::new().map_err(|e| format!("{:?}", e))?;
+        if let Err(e) = font_renderer.load_font("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf") {
+            println!("Font load failed: {:?}", e);
+        }
         
         Ok(Self {
             window,
@@ -77,20 +80,55 @@ impl Application {
         
         self.window.clear();
         
-        // Iterate UI nodes sequentially based on keys. (In correct Topological traversal later)
-        if let Some((_, _, _, _)) = self.layout.get_layout(1) {
-            // Because our naive shim loop doesn't have deep traversal yet, 
-            // for the Hello World, we'll draw a literal background rectangle if the root exists!
-            unsafe {
-                // Background color for div
-                let rect = SDL_FRect {
-                    x: 0.0,
-                    y: 0.0,
-                    w: self.window.width as f32,
-                    h: self.window.height as f32,
-                };
-                SDL_SetRenderDrawColor(self.window.renderer, 240, 240, 240, 255);
-                SDL_RenderFillRect(self.window.renderer, &rect);
+        // Iterate UI nodes sorted by ID to ensure children (higher IDs) draw over parents
+        let mut sorted_ids: Vec<u32> = self.widgets.keys().copied().collect();
+        sorted_ids.sort();
+        for id in sorted_ids {
+            let widget = self.widgets.get(&id).unwrap();
+            if let Some((x, y, w, h)) = self.layout.get_layout(id) {
+                match widget.tag {
+                    IntrinsicTag::Div => {
+                        unsafe {
+                            let rect = sdl3_sys::everything::SDL_FRect { x, y, w, h };
+                            sdl3_sys::everything::SDL_SetRenderDrawColor(self.window.renderer, 240, 240, 240, 255);
+                            sdl3_sys::everything::SDL_RenderFillRect(self.window.renderer, &rect);
+                        }
+                    }
+                    IntrinsicTag::Span => {
+                        if let Some(text) = &widget.text_node {
+                            if let Ok(atlas) = self.font_renderer.rasterize_text(text) {
+                                let mut cursor_x = x;
+                                // Freetype offsets character bearings up into negative coordinate spaces relative to the baseline.
+                                // We ensure it drops into visual padding explicitly.
+                                let cursor_y = y + h / 2.0 + 64.0;
+
+                                unsafe {
+                                    for ch in text.chars() {
+                                        if let Some(glyph) = atlas.glyphs.get(&ch) {
+                                            for row in 0..glyph.height {
+                                                for col in 0..glyph.width {
+                                                    let pixel_idx = (row * glyph.width + col) as usize;
+                                                    if pixel_idx < glyph.bitmap_data.len() {
+                                                        let alpha = glyph.bitmap_data[pixel_idx];
+                                                        if alpha > 0 {
+                                                            let px = cursor_x + col as f32 + glyph.bearing_x as f32;
+                                                            let py = cursor_y + row as f32 - glyph.bearing_y as f32;
+                                                            let mut rect = sdl3_sys::everything::SDL_FRect { x: px, y: py, w: 1.0, h: 1.0 };
+                                                            sdl3_sys::everything::SDL_SetRenderDrawColor(self.window.renderer, 0, 0, 0, alpha);
+                                                            sdl3_sys::everything::SDL_SetRenderDrawBlendMode(self.window.renderer, sdl3_sys::everything::SDL_BLENDMODE_BLEND);
+                                                            sdl3_sys::everything::SDL_RenderFillRect(self.window.renderer, &mut rect);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            cursor_x += (glyph.advance >> 6) as f32;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
         

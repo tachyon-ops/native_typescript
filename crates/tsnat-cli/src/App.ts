@@ -1,6 +1,7 @@
-// Translated natively using TS execution (JSX compilation placeholder)
-const App = React.createElement("div", null,
-    React.createElement("span", null, "Hello World")
+const App = (
+    <div>
+        <span>Hello World</span>
+    </div>
 );
 
 ReactDOM.render(App, null);

@@ -221,6 +221,16 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                 })
             }
             Expr::Binary(binary) => {
+                if binary.op == tsnat_parse::ast::BinaryOp::And {
+                    let left = self.eval_expr(binary.left)?;
+                    if !left.is_truthy() { return Ok(left); }
+                    return self.eval_expr(binary.right);
+                } else if binary.op == tsnat_parse::ast::BinaryOp::Or {
+                    let left = self.eval_expr(binary.left)?;
+                    if left.is_truthy() { return Ok(left); }
+                    return self.eval_expr(binary.right);
+                }
+                
                 let left = self.eval_expr(binary.left)?;
                 let right = self.eval_expr(binary.right)?;
                 self.eval_binary_op(left, binary.op, right, binary.span)
@@ -326,6 +336,11 @@ impl<'a, 'src> Evaluator<'a, 'src> {
             (Value::Number(l), Lt, Value::Number(r)) => Ok(Value::Bool(l < r)),
             (Value::Number(l), Gt, Value::Number(r)) => Ok(Value::Bool(l > r)),
             (Value::Number(l), EqEqEq, Value::Number(r)) => Ok(Value::Bool(l == r)),
+            (Value::Number(l), BangEqEq, Value::Number(r)) => Ok(Value::Bool(l != r)),
+            (Value::String(l), EqEqEq, Value::String(r)) => Ok(Value::Bool(l == r)),
+            (Value::String(l), BangEqEq, Value::String(r)) => Ok(Value::Bool(l != r)),
+            (Value::Undefined, EqEqEq, Value::Undefined) => Ok(Value::Bool(true)),
+            (l, BangEqEq, Value::Undefined) => Ok(Value::Bool(!matches!(l, Value::Undefined))),
             (Value::String(l), Add, Value::String(r)) => Ok(Value::String(Rc::from(format!("{}{}", l, r)))),
             (l, op, r) => Err(TsnatError::Runtime {
                 message: format!("Unimplemented binary operations: {:?} {:?} {:?}", l, op, r),
@@ -399,6 +414,19 @@ impl<'a, 'src> Evaluator<'a, 'src> {
         match (op, val) {
             (Not, v) => Ok(Value::Bool(!v.is_truthy())),
             (Neg, Value::Number(n)) => Ok(Value::Number(-n)),
+            (Typeof, v) => {
+                let s = match v {
+                    Value::Undefined => "undefined",
+                    Value::Null => "object",
+                    Value::Bool(_) => "boolean",
+                    Value::Number(_) | Value::BigInt(_) => "number",
+                    Value::String(_) => "string",
+                    Value::Symbol(_) => "symbol",
+                    Value::Object(_) => "object",
+                    Value::Function(_) | Value::NativeFunction(_) => "function",
+                };
+                Ok(Value::String(Rc::from(s)))
+            }
             (op, v) => Err(TsnatError::Runtime {
                 message: format!("Unimplemented unary operator: {:?} {:?}", op, v),
                 span: Some(span),

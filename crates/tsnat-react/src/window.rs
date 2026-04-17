@@ -58,15 +58,16 @@ impl Window {
     }
     
     pub fn poll_events(&mut self) -> Vec<NativeEvent> {
-        let events = Vec::new();
+        let mut events = Vec::new();
         let mut evt: SDL_Event = unsafe { std::mem::zeroed() };
         
         unsafe {
-            while SDL_PollEvent(&mut evt) {
-                // evt.type is no longer a direct struct field in SDL3 but an anonymous union
-                // Typically you access it via `evt.type_`
-                // Let's just do a basic match later if needed. For now assume basic quit detection if we find it.
-                // We'll leave it simple.
+            while sdl3_sys::events::SDL_PollEvent(&mut evt) {
+                // Access the type field safely, usually type_ in union accesses require unsafe mapping.
+                // Assuming `type` is exported as u32 in bindgen
+                if evt.r#type == sdl3_sys::everything::SDL_EVENT_QUIT.0 as u32 {
+                    events.push(NativeEvent::Quit);
+                }
             }
         }
         events

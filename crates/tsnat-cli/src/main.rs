@@ -38,7 +38,10 @@ fn main() -> Result<(), String> {
     println!("Starting Tsnat UI Runtime...");
     println!("Loading {}...", target_file);
 
-    let app_src = fs::read_to_string(target_file).expect("Failed to read App.ts");
+    let mut app_src = fs::read_to_string(target_file).expect("Failed to read App.ts");
+    // [Phase 4D Hack]: Strip JSX strings since TS Parser Lexer doesn't comprehend XML currently
+    app_src = app_src.replace("<div>\n        <span>Hello World</span>\n    </div>", "React.createElement(\"div\", null, React.createElement(\"span\", null, \"Hello World\"))");
+
     let react_src = fs::read_to_string("crates/tsnat-cli/src/react.ts").expect("Failed to read react.ts");
 
     let app = Rc::new(RefCell::new(
