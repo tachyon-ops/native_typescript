@@ -10,7 +10,7 @@ pub enum NativeEvent {
 
 pub struct Window {
     sdl_window: *mut SDL_Window,
-    renderer: *mut SDL_Renderer,
+    pub renderer: *mut SDL_Renderer,
     pub width: u32,
     pub height: u32,
 }

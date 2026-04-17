@@ -4,3 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+bumpalo = "3.16.0"
+tsnat-common = { path = "../tsnat-common" }
+tsnat-lex = { path = "../tsnat-lex" }
+tsnat-parse = { path = "../tsnat-parse" }
+tsnat-eval = { path = "../tsnat-eval" }
+tsnat-react = { path = "../tsnat-react" }

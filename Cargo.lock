@@ -545,6 +545,14 @@ dependencies = [
 [[package]]
 name = "tsnat-cli"
 version = "0.1.0"
+dependencies = [
+ "bumpalo",
+ "tsnat-common",
+ "tsnat-eval",
+ "tsnat-lex",
+ "tsnat-parse",
+ "tsnat-react",
+]
 
 [[package]]
 name = "tsnat-codegen"
