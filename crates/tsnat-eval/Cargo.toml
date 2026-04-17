@@ -4,3 +4,19 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+tsnat-common = { path = "../tsnat-common" }
+tsnat-parse = { path = "../tsnat-parse" }
+rustc-hash = { workspace = true }
+indexmap = { workspace = true }
+thiserror = { workspace = true }
+miette = { workspace = true }
+bumpalo = { workspace = true }
+
+[[test]]
+name = "eval_smoke"
+path = "../../tests/phase2/eval_smoke.rs"
+
+[dev-dependencies]
+tsnat-lex = { path = "../tsnat-lex" }
+tsnat-parse = { path = "../tsnat-parse" }
+bumpalo = { workspace = true }

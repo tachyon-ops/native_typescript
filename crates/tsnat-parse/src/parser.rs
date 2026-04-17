@@ -1075,6 +1075,10 @@ impl<'src, 'arena> Parser<'src, 'arena> {
                     quasis, exprs, span: tok.span,
                 }))
             }
+            TokenKind::KwFunction => {
+                let func = self.parse_function_decl(false)?;
+                Ok(Expr::Function(func))
+            }
             _ => Err(TsnatError::Parse {
                 message: format!("Unexpected token: {}", self.peek().kind),
                 span: self.peek().span,

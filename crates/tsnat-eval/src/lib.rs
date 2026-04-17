@@ -1,14 +1,14 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+pub mod value;
+pub mod env;
+pub mod eval;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+use tsnat_common::diagnostic::TsnatResult;
+use tsnat_common::interner::Interner;
+use tsnat_parse::ast::Program;
+use crate::eval::Evaluator;
+use crate::value::Value;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+pub fn evaluate<'a>(program: &'a Program<'a>, interner: &mut Interner) -> TsnatResult<Value<'a>> {
+    let mut evaluator = Evaluator::new(interner);
+    evaluator.eval_program(program)
 }
