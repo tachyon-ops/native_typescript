@@ -3,6 +3,8 @@ use crate::window::{Window, NativeEvent};
 use crate::layout::LayoutTree;
 use crate::font::{FontRenderer, GlyphAtlas};
 use sdl3_sys::everything::{SDL_FRect, SDL_SetRenderDrawColor, SDL_RenderFillRect};
+use std::f32;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum IntrinsicTag {
@@ -14,14 +16,16 @@ pub struct Widget {
     pub id: u32,
     pub tag: IntrinsicTag,
     pub text_node: Option<String>,
+    pub children: Vec<u32>,
 }
 
 pub struct Application {
     pub window: Window,
     pub layout: LayoutTree,
     pub font_renderer: FontRenderer,
-    pub widgets: std::collections::HashMap<u32, Widget>,
-    next_id: u32,
+    pub widgets: HashMap<u32, Widget>,
+    pub next_id: u32,
+    pub root_widget: Option<u32>,
 }
 
 impl Application {
@@ -37,8 +41,9 @@ impl Application {
             window,
             layout,
             font_renderer,
-            widgets: std::collections::HashMap::new(),
+            widgets: HashMap::new(),
             next_id: 1,
+            root_widget: None,
         })
     }
 
@@ -50,6 +55,7 @@ impl Application {
             id,
             tag,
             text_node: text,
+            children: Vec::new(),
         });
         
         self.layout.insert_node(id);
@@ -57,21 +63,72 @@ impl Application {
     }
 
     pub fn append_child(&mut self, parent_id: u32, child_id: u32) {
-        // Find how many children the parent already has in its yoga logic (not deeply implemented yet, defaulting to append at end)
-        // For simplicity right now, place at index 0.
-        self.layout.insert_child(parent_id, child_id, 0);
+        if let Some(parent) = self.widgets.get_mut(&parent_id) {
+            parent.children.push(child_id);
+            let index = parent.children.len() as u32 - 1;
+            self.layout.insert_child(parent_id, child_id, index);
+        }
     }
     
-    pub fn set_root(&mut self, id: u32) {
-        self.layout.set_root(id);
+    pub fn get_root(&self) -> Option<u32> {
+        self.root_widget
     }
 
-    pub fn tick(&mut self) -> bool {
+    pub fn set_root(&mut self, id: u32) {
+        self.layout.set_root(id);
+        self.root_widget = Some(id);
+        self.window.show();
+    }
+
+    fn get_topological_order(&self) -> Vec<u32> {
+        let mut order = Vec::new();
+        if let Some(root) = self.root_widget {
+            self.visit_widget(root, &mut order);
+        }
+        order
+    }
+
+    fn visit_widget(&self, id: u32, order: &mut Vec<u32>) {
+        order.push(id);
+        if let Some(w) = self.widgets.get(&id) {
+            for child in &w.children {
+                self.visit_widget(*child, order);
+            }
+        }
+    }
+
+    pub fn tick(&mut self) -> Option<Vec<u32>> {
+        let mut clicked_widgets = Vec::new();
+        let topo_ids = self.get_topological_order();
+
         // Poll input events
         let events = self.window.poll_events();
         for ev in events {
             match ev {
-                NativeEvent::Quit => return false,
+                NativeEvent::Quit => return None,
+                NativeEvent::MouseClick { x: cx, y: cy } => {
+                    let mut reverse_topo = topo_ids.clone();
+                    reverse_topo.reverse(); // check children first
+                    
+                    for id in reverse_topo {
+                        if let Some((mut x, mut y, mut w, mut h)) = self.layout.get_layout(id) {
+                            if x.is_nan() { x = 0.0; }
+                            if y.is_nan() { y = 0.0; }
+                            if w.is_nan() { w = 0.0; }
+                            if h.is_nan() { h = 0.0; }
+                            
+                            // Let's assume standard width and height exist. If text context, bounds might be 0, but Yoga text measure would set w/h once implemented.
+                            // Temporary: Expand click area for text blocks with 0 width
+                            let click_w = if w == 0.0 { 100.0 } else { w };
+                            let click_h = if h == 0.0 { 50.0  } else { h };
+                            
+                            if cx >= x && cx <= x + click_w && cy >= y && cy <= y + click_h {
+                                clicked_widgets.push(id);
+                                break; // Only click the topmost widget
+                            }
+                        }
+                    }
+                }
             }
         }
         
@@ -80,12 +137,14 @@ impl Application {
         
         self.window.clear();
         
-        // Iterate UI nodes sorted by ID to ensure children (higher IDs) draw over parents
-        let mut sorted_ids: Vec<u32> = self.widgets.keys().copied().collect();
-        sorted_ids.sort();
-        for id in sorted_ids {
+        // Iterate UI nodes using topological order
+        for id in topo_ids {
             let widget = self.widgets.get(&id).unwrap();
-            if let Some((x, y, w, h)) = self.layout.get_layout(id) {
+            if let Some((mut x, mut y, mut w, mut h)) = self.layout.get_layout(id) {
+                if x.is_nan() { x = 0.0; }
+                if y.is_nan() { y = 0.0; }
+                if w.is_nan() { w = 0.0; }
+                if h.is_nan() { h = 0.0; }
                 match widget.tag {
                     IntrinsicTag::Div => {
                         unsafe {
@@ -97,12 +156,14 @@ impl Application {
                     IntrinsicTag::Span => {
                         if let Some(text) = &widget.text_node {
                             if let Ok(atlas) = self.font_renderer.rasterize_text(text) {
-                                let mut cursor_x = x;
-                                // Freetype offsets character bearings up into negative coordinate spaces relative to the baseline.
-                                // We ensure it drops into visual padding explicitly.
-                                let cursor_y = y + h / 2.0 + 64.0;
+                                // Default rendering to padded coordinate if Yoga yields 0 width bounds
+                                let mut cursor_x = if w <= 0.0 { 100.0 } else { x };
+                                let cursor_y = if h <= 0.0 { 100.0 } else { y + h / 2.0 };
 
                                 unsafe {
+                                    // Set blend mode to support standard font antialiasing (alpha blending)
+                                    sdl3_sys::everything::SDL_SetRenderDrawBlendMode(self.window.renderer, sdl3_sys::everything::SDL_BLENDMODE_BLEND);
+
                                     for ch in text.chars() {
                                         if let Some(glyph) = atlas.glyphs.get(&ch) {
                                             for row in 0..glyph.height {
@@ -113,10 +174,9 @@ impl Application {
                                                         if alpha > 0 {
                                                             let px = cursor_x + col as f32 + glyph.bearing_x as f32;
                                                             let py = cursor_y + row as f32 - glyph.bearing_y as f32;
-                                                            let mut rect = sdl3_sys::everything::SDL_FRect { x: px, y: py, w: 1.0, h: 1.0 };
+                                                            let rect = sdl3_sys::everything::SDL_FRect { x: px, y: py, w: 1.0, h: 1.0 };
                                                             sdl3_sys::everything::SDL_SetRenderDrawColor(self.window.renderer, 0, 0, 0, alpha);
-                                                            sdl3_sys::everything::SDL_SetRenderDrawBlendMode(self.window.renderer, sdl3_sys::everything::SDL_BLENDMODE_BLEND);
-                                                            sdl3_sys::everything::SDL_RenderFillRect(self.window.renderer, &mut rect);
+                                                            sdl3_sys::everything::SDL_RenderFillRect(self.window.renderer, &rect);
                                                         }
                                                     }
                                                 }
@@ -124,6 +184,9 @@ impl Application {
                                             cursor_x += (glyph.advance >> 6) as f32;
                                         }
                                     }
+                                    
+                                    // Reset blend mode just in case
+                                    sdl3_sys::everything::SDL_SetRenderDrawBlendMode(self.window.renderer, sdl3_sys::everything::SDL_BLENDMODE_NONE);
                                 }
                             }
                         }
@@ -134,6 +197,6 @@ impl Application {
         
         self.window.present();
         
-        true
+        Some(clicked_widgets)
     }
 }

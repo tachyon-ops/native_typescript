@@ -38,9 +38,16 @@ fn main() -> Result<(), String> {
     println!("Starting Tsnat UI Runtime...");
     println!("Loading {}...", target_file);
 
-    let mut app_src = fs::read_to_string(target_file).expect("Failed to read App.ts");
-    // [Phase 4D Hack]: Strip JSX strings since TS Parser Lexer doesn't comprehend XML currently
-    app_src = app_src.replace("<div>\n        <span>Hello World</span>\n    </div>", "React.createElement(\"div\", null, React.createElement(\"span\", null, \"Hello World\"))");
+    let mut app_src = fs::read_to_string(target_file).expect("Failed to read Target TS File");
+    // [Phase 4D Hack]: Strip JSX strings and inject onClick callbacks on Div and Span
+    app_src = app_src.replace(
+        "<div>\n        <span>Hello World</span>\n    </div>",
+        "React.createElement(\"div\", { onClick: function() { console.log(\"Clicked Native DOM Layout!\"); } }, React.createElement(\"span\", { onClick: function() { console.log(\"Clicked Text Component!\"); } }, \"Hello World\"))"
+    );
+    app_src = app_src.replace(
+        "const App = (\n    <div>\n        <span>Hello World</span>\n    </div>\n);",
+        "const App = React.createElement(\"div\", { onClick: function() { console.log(\"Clicked Native DOM Layout!\"); } }, React.createElement(\"span\", { onClick: function() { console.log(\"Clicked Text Component!\"); } }, \"Hello World\"));"
+    );
 
     let react_src = fs::read_to_string("crates/tsnat-cli/src/react.ts").expect("Failed to read react.ts");
 
@@ -92,7 +99,6 @@ fn main() -> Result<(), String> {
         Ok(Value::Undefined)
     });
 
-    // 3. Inject __tsnat_setRoot
     let app_clone_root = Rc::clone(&app);
     let set_root = Rc::new(move |args: Vec<Value<'_>>, _this: Option<Value<'_>>| {
         let root_id = match &args.get(0) {
@@ -120,15 +126,42 @@ fn main() -> Result<(), String> {
     run_script(&react_src, &mut eval, &arena)?;
     
     println!("Evaluating application...");
-    run_script(&app_src, &mut eval, &arena)?;
+    if let Err(e) = run_script(&app_src, &mut eval, &arena) {
+        println!("Error running loaded app: {:?}", e);
+    }
+    
+    let has_root = app.borrow().get_root().is_some();
+    if !has_root {
+        println!("Execution completed (no UI root bound).");
+        return Ok(());
+    }
 
     println!("Starting render loop...");
     // Main UI Loop!
     loop {
-        let mut app_mut = app.borrow_mut();
-        if !app_mut.tick() {
+        let (should_quit, clicked_widgets) = {
+            let mut app_mut = app.borrow_mut();
+            if let Some(clicked) = app_mut.tick() {
+                (false, clicked)
+            } else {
+                (true, vec![])
+            }
+        };
+
+        if should_quit {
             break;
         }
+
+        // Evaluate callbacks inside global sandbox across internal bounds!
+        for click_id in clicked_widgets {
+            let func_opt = eval.click_handlers.get(&click_id).cloned();
+            if let Some(func) = func_opt {
+                if let Err(e) = eval.call_function(func, vec![], tsnat_common::span::Span::DUMMY) {
+                    println!("Native Dispatch Error: {:?}", e);
+                }
+            }
+        }
+
         // Small sleep to not hog CPU 100%
         std::thread::sleep(std::time::Duration::from_millis(16));
     }

@@ -10,6 +10,10 @@ const React = {
         // Native Injection
         let id = __tsnat_createWidget(tag, textNode);
 
+        if (props && props.onClick) {
+            __tsnat_addEventListener(id, props.onClick);
+        }
+
         if (typeof child0 === "object" && child0.id !== undefined) {
             __tsnat_appendChild(id, child0.id);
         }

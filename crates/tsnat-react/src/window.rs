@@ -1,11 +1,12 @@
 use std::ffi::CString;
 use std::ptr;
 use sdl3_sys::everything::{SDL_Window, SDL_Renderer, SDL_Init, SDL_INIT_VIDEO, SDL_CreateWindow, SDL_CreateRenderer, SDL_Quit, SDL_DestroyRenderer, SDL_DestroyWindow, SDL_Event, SDL_PollEvent, SDL_RenderClear, SDL_RenderPresent, SDL_SetRenderDrawColor};
+use sdl3_sys::video::{SDL_WINDOW_HIDDEN, SDL_ShowWindow};
 use tsnat_common::diagnostic::{TsnatResult, TsnatError};
 
 pub enum NativeEvent {
     Quit,
-    // Add more as needed
+    MouseClick { x: f32, y: f32 },
 }
 
 pub struct Window {
@@ -29,7 +30,7 @@ impl Window {
             
             // In SDL3, SDL_CreateWindow only takes 3 arguments: title, width, height, flags
             // Actually let's assume it takes (title, width, height, flags)
-            let sdl_window = SDL_CreateWindow(title_cstr.as_ptr(), width as i32, height as i32, sdl3_sys::video::SDL_WindowFlags(0));
+            let sdl_window = SDL_CreateWindow(title_cstr.as_ptr(), width as i32, height as i32, SDL_WINDOW_HIDDEN);
             if sdl_window.is_null() {
                 return Err(TsnatError::Runtime {
                     message: "Failed to create SDL3 window".into(),
@@ -56,17 +57,26 @@ impl Window {
             })
         }
     }
-    
+    pub fn show(&mut self) {
+        unsafe {
+            SDL_ShowWindow(self.sdl_window);
+        }
+    }
+
     pub fn poll_events(&mut self) -> Vec<NativeEvent> {
         let mut events = Vec::new();
         let mut evt: SDL_Event = unsafe { std::mem::zeroed() };
         
         unsafe {
             while sdl3_sys::events::SDL_PollEvent(&mut evt) {
-                // Access the type field safely, usually type_ in union accesses require unsafe mapping.
-                // Assuming `type` is exported as u32 in bindgen
+                // Access the type field safely
                 if evt.r#type == sdl3_sys::everything::SDL_EVENT_QUIT.0 as u32 {
                     events.push(NativeEvent::Quit);
+                } else if evt.r#type == sdl3_sys::everything::SDL_EVENT_MOUSE_BUTTON_UP.0 as u32 {
+                    events.push(NativeEvent::MouseClick {
+                        x: evt.button.x,
+                        y: evt.button.y,
+                    });
                 }
             }
         }

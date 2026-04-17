@@ -41,8 +41,13 @@ impl LayoutTree {
         );
     }
 
-    pub fn insert_child(&mut self, _parent_id: u32, _child_id: u32, _index: u32) {
-        // Topological traversal and pointer linking will occur in TASK-037
+    pub fn insert_child(&mut self, parent_id: u32, child_id: u32, index: u32) {
+        if let Some(mut child) = self.nodes.remove(&child_id) {
+            if let Some(parent) = self.nodes.get_mut(&parent_id) {
+                parent.yoga_node.insert_child(&mut child.yoga_node, index as usize);
+            }
+            self.nodes.insert(child_id, child);
+        }
     }
 
     pub fn calculate_layout(&mut self, width: f32, height: f32) {

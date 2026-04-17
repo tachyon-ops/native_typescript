@@ -19,6 +19,7 @@ pub struct Evaluator<'a, 'src> {
     pub env: Rc<RefCell<Environment<'a>>>,
     pub interner: &'src mut Interner,
     pub ffi_loader: std::sync::Arc<tsnat_ffi::loader::NativeLibraryLoader>,
+    pub click_handlers: IndexMap<u32, Value<'a>>,
 }
 
 impl<'a, 'src> Evaluator<'a, 'src> {
@@ -54,6 +55,7 @@ impl<'a, 'src> Evaluator<'a, 'src> {
             env: global_env,
             interner,
             ffi_loader,
+            click_handlers: IndexMap::new(),
         }
     }
 
@@ -259,6 +261,19 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                 }
             }
             Expr::Call(call) => {
+                if let Expr::Ident(sym, _) = call.callee {
+                    if self.interner.get(*sym) == "__tsnat_addEventListener" {
+                        if call.args.len() == 2 {
+                            let id_val = self.eval_expr(call.args[0])?;
+                            let func_val = self.eval_expr(call.args[1])?;
+                            if let Value::Number(n) = id_val {
+                                self.click_handlers.insert(n as u32, func_val);
+                            }
+                        }
+                        return Ok(Value::Undefined);
+                    }
+                }
+                
                 let callee = self.eval_expr(call.callee)?;
                 let mut args = Vec::new();
                 for arg in call.args.iter() {
@@ -349,7 +364,7 @@ impl<'a, 'src> Evaluator<'a, 'src> {
         }
     }
 
-    fn call_function(&mut self, callee: Value<'a>, args: Vec<Value<'a>>, span: Span) -> TsnatResult<Value<'a>> {
+    pub fn call_function(&mut self, callee: Value<'a>, args: Vec<Value<'a>>, span: Span) -> TsnatResult<Value<'a>> {
         match callee {
             Value::Function(func) => {
                 let previous_env = self.env.clone();
