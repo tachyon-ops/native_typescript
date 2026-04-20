@@ -330,6 +330,9 @@ pub enum Expr<'a> {
     Object(ObjectExpr<'a>),
     Paren(&'a Expr<'a>, Span),
     As(AsExpr<'a>),
+    JSXElement(JSXElement<'a>),
+    JSXText(Symbol, Span),
+    JSXExpressionContainer(&'a Expr<'a>, Span),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -478,6 +481,13 @@ pub struct AsExpr<'a> {
     pub span: Span,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct JSXElement<'a> {
+    pub tag: Symbol,
+    pub children: NodeList<'a, &'a Expr<'a>>,
+    pub span: Span,
+}
+
 // ── Types ─────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -548,6 +558,9 @@ impl<'a> Expr<'a> {
             Expr::Array(e) => e.span,
             Expr::Object(e) => e.span,
             Expr::As(e) => e.span,
+            Expr::JSXElement(e) => e.span,
+            Expr::JSXText(_, s) => *s,
+            Expr::JSXExpressionContainer(_, s) => *s,
         }
     }
 }
