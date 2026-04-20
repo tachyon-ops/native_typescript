@@ -20,6 +20,7 @@ pub struct Evaluator<'a, 'src> {
     pub interner: &'src mut Interner,
     pub ffi_loader: std::sync::Arc<tsnat_ffi::loader::NativeLibraryLoader>,
     pub click_handlers: IndexMap<u32, Value<'a>>,
+    pub source: Option<String>,
 }
 
 impl<'a, 'src> Evaluator<'a, 'src> {
@@ -56,6 +57,7 @@ impl<'a, 'src> Evaluator<'a, 'src> {
             interner,
             ffi_loader,
             click_handlers: IndexMap::new(),
+            source: None,
         }
     }
 
@@ -334,6 +336,67 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                 self.get_property(obj, key, index.span)
             }
             Expr::Paren(inner, _) => self.eval_expr(inner),
+            Expr::JSXElement(jsx) => {
+                let react_sym = self.interner.intern("React");
+                let react_val = self.env.borrow().get(react_sym).ok_or_else(|| TsnatError::Runtime {
+                    message: "React is not defined".into(),
+                    span: Some(jsx.span),
+                })?;
+                
+                let create_elem_sym = self.interner.intern("createElement");
+                let create_elem = self.get_property(react_val, create_elem_sym, jsx.span)?;
+                
+                let tag_str = self.interner.get(jsx.tag).to_string();
+                let tag_val = Value::String(Rc::from(tag_str));
+                
+                let mut props_map = IndexMap::default();
+                for prop in jsx.props.iter() {
+                    let val = self.eval_expr(prop.value)?;
+                    props_map.insert(prop.key, val);
+                }
+                
+                let props_val = if props_map.is_empty() {
+                    Value::Null
+                } else {
+                    Value::Object(Rc::new(RefCell::new(JsObject {
+                        properties: props_map,
+                        prototype: None,
+                    })))
+                };
+                
+                let mut children_map = IndexMap::default();
+                let mut child_idx = 0;
+                for child in jsx.children.iter() {
+                    let child_val = self.eval_expr(child)?;
+                    // Filter out empty text nodes
+                    if let Value::String(ref s) = child_val {
+                        if s.trim().is_empty() {
+                            continue;
+                        }
+                    }
+                    
+                    let key = self.interner.intern(&child_idx.to_string());
+                    children_map.insert(key, child_val);
+                    child_idx += 1;
+                }
+                
+                let children_val = Value::Object(Rc::new(RefCell::new(JsObject {
+                    properties: children_map,
+                    prototype: None,
+                })));
+                
+                let args = vec![tag_val, props_val, children_val];
+                self.call_function(create_elem, args, jsx.span)
+            }
+            Expr::JSXText(_, span) => {
+                if let Some(src) = &self.source {
+                    let text = &src[span.start as usize..span.end as usize];
+                    Ok(Value::String(Rc::from(text)))
+                } else {
+                    Ok(Value::String(Rc::from("")))
+                }
+            }
+            Expr::JSXExpressionContainer(inner, _) => self.eval_expr(inner),
             _ => Err(TsnatError::Runtime {
                 message: format!("Unimplemented expression type: {:?}", expr),
                 span: Some(expr.span()),
@@ -355,8 +418,32 @@ impl<'a, 'src> Evaluator<'a, 'src> {
             (Value::String(l), EqEqEq, Value::String(r)) => Ok(Value::Bool(l == r)),
             (Value::String(l), BangEqEq, Value::String(r)) => Ok(Value::Bool(l != r)),
             (Value::Undefined, EqEqEq, Value::Undefined) => Ok(Value::Bool(true)),
+            (Value::Null, EqEqEq, Value::Null) => Ok(Value::Bool(true)),
             (l, BangEqEq, Value::Undefined) => Ok(Value::Bool(!matches!(l, Value::Undefined))),
+            (l, BangEqEq, Value::Null) => Ok(Value::Bool(!matches!(l, Value::Null))),
             (Value::String(l), Add, Value::String(r)) => Ok(Value::String(Rc::from(format!("{}{}", l, r)))),
+            (Value::String(l), Add, r) => {
+                let r_str = match r {
+                    Value::String(s) => s.to_string(),
+                    Value::Number(n) => n.to_string(),
+                    Value::Bool(b) => b.to_string(),
+                    Value::Null => "null".to_string(),
+                    Value::Undefined => "undefined".to_string(),
+                    _ => "[object Object]".to_string(),
+                };
+                Ok(Value::String(Rc::from(format!("{}{}", l, r_str))))
+            }
+            (l, Add, Value::String(r)) => {
+                let l_str = match l {
+                    Value::String(s) => s.to_string(),
+                    Value::Number(n) => n.to_string(),
+                    Value::Bool(b) => b.to_string(),
+                    Value::Null => "null".to_string(),
+                    Value::Undefined => "undefined".to_string(),
+                    _ => "[object Object]".to_string(),
+                };
+                Ok(Value::String(Rc::from(format!("{}{}", l_str, r))))
+            }
             (l, op, r) => Err(TsnatError::Runtime {
                 message: format!("Unimplemented binary operations: {:?} {:?} {:?}", l, op, r),
                 span: Some(span),

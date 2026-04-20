@@ -1,21 +1,24 @@
 const React = {
-    createElement: function(tag: string, props: any, child0: any) {
+    createElement: function(tag: string, props: any, children: any) {
         let textNode = null;
 
-        // If it's a generic text wrapper
-        if (tag === "span" && typeof child0 === "string") {
-            textNode = child0;
+        if (tag === "span" && typeof children[0] === "string") {
+            textNode = children[0];
         }
 
-        // Native Injection
         let id = __tsnat_createWidget(tag, textNode);
 
-        if (props && props.onClick) {
+        if (props !== null && props.onClick) {
             __tsnat_addEventListener(id, props.onClick);
         }
 
-        if (typeof child0 === "object" && child0.id !== undefined) {
-            __tsnat_appendChild(id, child0.id);
+        let i = 0;
+        while (children[i] !== undefined) {
+            let child = children[i];
+            if (typeof child === "object" && child.id !== undefined) {
+                __tsnat_appendChild(id, child.id);
+            }
+            i = i + 1;
         }
 
         return { id: id, tag: tag };

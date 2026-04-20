@@ -484,6 +484,7 @@ pub struct AsExpr<'a> {
 #[derive(Debug, Clone, PartialEq)]
 pub struct JSXElement<'a> {
     pub tag: Symbol,
+    pub props: NodeList<'a, ObjProp<'a>>,
     pub children: NodeList<'a, &'a Expr<'a>>,
     pub span: Span,
 }

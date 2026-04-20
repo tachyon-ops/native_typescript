@@ -1120,6 +1120,18 @@ impl<'src, 'arena> Parser<'src, 'arena> {
                 let tok = self.advance();
                 Ok(Expr::Ident(tok.value, tok.span))
             }
+            TokenKind::Lt => {
+                let next = self.peek_ahead(1);
+                if next.kind == TokenKind::Ident {
+                    self.advance(); // consume `<`
+                    return self.parse_jsx_element();
+                } else {
+                    return Err(TsnatError::Parse {
+                        message: "Expected JSX or type arg".into(),
+                        span: self.peek().span,
+                    });
+                }
+            }
             TokenKind::LParen => {
                 let start = self.advance().span;
                 let expr = self.parse_expr()?;
@@ -1148,6 +1160,111 @@ impl<'src, 'arena> Parser<'src, 'arena> {
                 span: self.peek().span,
             }),
         }
+    }
+
+    // ── JSX Parsing ──────────────────────────────────────────
+
+    fn parse_jsx_element(&mut self) -> TsnatResult<Expr<'arena>> {
+        let start_span = self.previous().span; // `<`
+        let tag_tok = self.expect(TokenKind::Ident)?;
+        let tag = tag_tok.value;
+
+        let mut props = Vec::new();
+        while self.peek().kind != TokenKind::Gt && self.peek().kind != TokenKind::Slash && !self.is_at_end() {
+            let key_tok = self.expect(TokenKind::Ident)?;
+            let key = key_tok.value;
+            let key_span = key_tok.span;
+            
+            let value = if self.match_kind(TokenKind::Eq) {
+                if self.match_kind(TokenKind::LBrace) {
+                    let expr = self.parse_expr()?;
+                    self.expect(TokenKind::RBrace)?;
+                    self.alloc(expr)
+                } else if self.peek().kind == TokenKind::String {
+                    let tok = self.advance();
+                    self.alloc(Expr::String(tok.value, tok.span))
+                } else {
+                    return Err(TsnatError::Parse {
+                        message: "Expected string or expr for JSX prop".into(),
+                        span: self.peek().span,
+                    });
+                }
+            } else {
+                self.alloc(Expr::Bool(true, key_span))
+            };
+            
+            let span = key_span.merge(value.span());
+            props.push(ObjProp { key, value, span });
+        }
+
+        let mut children = Vec::new();
+        let is_self_closing = if self.match_kind(TokenKind::Slash) {
+            self.expect(TokenKind::Gt)?;
+            true
+        } else {
+            self.expect(TokenKind::Gt)?;
+            false
+        };
+
+        if !is_self_closing {
+            let mut text_start = self.peek().span.start;
+
+        while !self.is_at_end() {
+            if self.peek().kind == TokenKind::Lt {
+                // Determine if it's nested JSX or closing tag
+                let lt_tok = self.advance();
+                if self.peek().kind == TokenKind::Slash {
+                    let _slash_tok = self.advance();
+                    // Flush pending text before the closing tag
+                    if text_start < lt_tok.span.start {
+                        let span = Span { file_id: start_span.file_id, start: text_start, end: lt_tok.span.start };
+                        children.push(self.alloc(Expr::JSXText(tsnat_common::interner::SYM_EMPTY, span)));
+                    }
+
+                    // Look for tag close
+                    self.expect(TokenKind::Ident)?;
+                    self.expect(TokenKind::Gt)?;
+                    break;
+                } else {
+                    // Flush pending text before nested tag
+                    if text_start < lt_tok.span.start {
+                        let span = Span { file_id: start_span.file_id, start: text_start, end: lt_tok.span.start };
+                        children.push(self.alloc(Expr::JSXText(tsnat_common::interner::SYM_EMPTY, span)));
+                    }
+                    // Rewind the `pos` backward by 1 because we consumed `<`
+                    self.pos -= 1;
+                    
+                    self.expect(TokenKind::Lt)?;
+                    let child = self.parse_jsx_element()?;
+                    children.push(self.alloc(child));
+                    text_start = self.peek().span.start;
+                }
+            } else if self.peek().kind == TokenKind::LBrace {
+                // Flush pending text before braces
+                let lbrace_tok = self.advance();
+                if text_start < lbrace_tok.span.start {
+                    let span = Span { file_id: start_span.file_id, start: text_start, end: lbrace_tok.span.start };
+                    children.push(self.alloc(Expr::JSXText(tsnat_common::interner::SYM_EMPTY, span)));
+                }
+
+                let expr = self.parse_expr()?;
+                self.expect(TokenKind::RBrace)?;
+                let jsx_expr = Expr::JSXExpressionContainer(self.alloc(expr), lbrace_tok.span);
+                children.push(self.alloc(jsx_expr));
+                text_start = self.peek().span.start;
+            } else {
+                self.advance();
+            }
+        }
+        }
+
+        let end_span = self.previous().span;
+        Ok(Expr::JSXElement(JSXElement {
+            tag,
+            props: self.arena.alloc_slice_fill_iter(props),
+            children: self.arena.alloc_slice_fill_iter(children),
+            span: start_span.merge(end_span),
+        }))
     }
 
     // ── Array literal ─────────────────────────────────────────
@@ -1295,6 +1412,14 @@ impl<'src, 'arena> Parser<'src, 'arena> {
             self.pos += 1;
         }
         &self.tokens[self.pos - 1]
+    }
+
+    fn previous(&self) -> &'src Token {
+        if self.pos == 0 {
+            &self.tokens[0]
+        } else {
+            &self.tokens[self.pos - 1]
+        }
     }
 
     fn expect(&mut self, kind: TokenKind) -> TsnatResult<&'src Token> {

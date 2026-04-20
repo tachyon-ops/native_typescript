@@ -39,15 +39,6 @@ fn main() -> Result<(), String> {
     println!("Loading {}...", target_file);
 
     let mut app_src = fs::read_to_string(target_file).expect("Failed to read Target TS File");
-    // [Phase 4D Hack]: Strip JSX strings and inject onClick callbacks on Div and Span
-    app_src = app_src.replace(
-        "<div>\n        <span>Hello World</span>\n    </div>",
-        "React.createElement(\"div\", { onClick: function() { console.log(\"Clicked Native DOM Layout!\"); } }, React.createElement(\"span\", { onClick: function() { console.log(\"Clicked Text Component!\"); } }, \"Hello World\"))"
-    );
-    app_src = app_src.replace(
-        "const App = (\n    <div>\n        <span>Hello World</span>\n    </div>\n);",
-        "const App = React.createElement(\"div\", { onClick: function() { console.log(\"Clicked Native DOM Layout!\"); } }, React.createElement(\"span\", { onClick: function() { console.log(\"Clicked Text Component!\"); } }, \"Hello World\"));"
-    );
 
     let react_src = fs::read_to_string("crates/tsnat-cli/src/react.ts").expect("Failed to read react.ts");
 
@@ -58,6 +49,7 @@ fn main() -> Result<(), String> {
     let arena = Bump::new();
     let mut interner = Interner::new();
     let mut eval = Evaluator::new(&mut interner);
+    eval.source = Some(app_src.clone());
 
     // 1. Inject __tsnat_createWidget
     // Signature: (tag: string, text: string?) -> u32
