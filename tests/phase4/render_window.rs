@@ -1,210 +1,344 @@
-use std::rc::Rc;
-use bumpalo::Bump;
-use tsnat_parse::interner::Interner;
-use tsnat_eval::eval::Evaluator;
-use tsnat_eval::value::Value;
-use tsnat_react::window::NativeEvent;
-use tsnat_lex::lexer::Lexer;
-use tsnat_parse::parser::Parser;
-use tsnat_common::span::SourceMap;
+/// Phase 4 gate test — React renderer to SDL3 native window.
+///
+/// This test must pass before any Phase 5 work begins.
+/// Requires SDL3 to be installed on the test machine.
+/// ALGO: See SPECS.md §9 FR-REACT-001 through FR-REACT-008
+
+mod common;
+use common::*;
+
+use tsnat_react::{RenderContext, TestRenderer};
+
+/// A headless test renderer that captures widget tree operations
+/// without opening a real window. Used for testing reconciler logic.
+///
+/// The real window test is gated behind the `real_window` feature flag
+/// and is only run in CI environments with a display.
+fn headless_render(src: &str) -> TestRenderer {
+    let mut ctx = RenderContext::new_headless();
+    ctx.eval_and_render(src).expect("render failed")
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Gate test
+// ════════════════════════════════════════════════════════════════════════════
 
 #[test]
-fn test_render_window_exit_test() {
-    let host_config = r#"
-        let _state = {};
-        let _index = 0;
-        let _rootComponent = null;
+fn test_gate_render_counter_app() {
+    let renderer = headless_render(r#"
+        import { renderApp } from 'tsnat/react';
+        import React, { useState } from 'react';
 
-        export const React = {
-            useState: function(initialValue) {
-                const currentIndex = _index;
-                if (_state[currentIndex] === undefined) {
-                    _state[currentIndex] = initialValue;
-                }
-                
-                const setState = function(newValue) {
-                    if (typeof newValue === "function") {
-                        _state[currentIndex] = newValue(_state[currentIndex]);
-                    } else {
-                        _state[currentIndex] = newValue;
-                    }
-                    _index = 0;
-                    if (_rootComponent !== null) {
-                        let newTree = _rootComponent();
-                        if (typeof newTree === "object" && newTree.id !== undefined) {
-                            __tsnat_setRoot(newTree.id);
-                        }
-                    }
-                };
-                _index = _index + 1;
-                return { v0: _state[currentIndex], v1: setState };
-            },
-
-            createElement: function(tag, props, children) {
-                let textNode = null;
-                if (tag === "span" && typeof children["0"] === "string") {
-                    textNode = children["0"];
-                } else if (typeof children["0"] === "string") {
-                    textNode = children["0"];
-                } else if (typeof children["0"] === "number") {
-                    textNode = "" + children["0"];
-                }
-
-                let id = __tsnat_createWidget(tag, textNode);
-
-                if (props !== null && props.onClick) {
-                    __tsnat_addEventListener(id, props.onClick);
-                }
-
-                let i = 0;
-                while (children[i] !== undefined) {
-                    let child = children[i];
-                    if (typeof child === "object" && child.id !== undefined) {
-                        __tsnat_appendChild(id, child.id);
-                    } else if (typeof child === "string" || typeof child === "number") {
-                        let textId = __tsnat_createWidget("span", "" + child);
-                        __tsnat_appendChild(id, textId);
-                    }
-                    i = i + 1;
-                }
-                return { id: id, tag: tag };
-            }
-        };
-
-        export const renderApp = function(root_fn, config) {
-            _rootComponent = root_fn;
-            _index = 0;
-            let root_element = root_fn();
-            if (typeof root_element === "object" && root_element.id !== undefined) {
-                __tsnat_setRoot(root_element.id);
-            }
-        };
-    "#;
-
-    let app_src = format!("{}\n{}", host_config, r#"
         function Counter() {
-            const stateRes = React.useState(0);
-            const n = stateRes.v0;
-            const setN = stateRes.v1;
+            const [n, setN] = useState(0);
             return (
-                <div id="container">
-                    <span>{"Count: "}{n}</span>
-                    <button onClick={function() { setN(function(c) { return c + 1; }); }}>
-                        <span>{"Increment"}</span>
-                    </button>
-                </div>
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ fontSize: 32 }} testId="count">{n}</Text>
+                    <Button testId="btn" onPress={() => setN(c => c + 1)}>
+                        <Text>Increment</Text>
+                    </Button>
+                </View>
             );
         }
 
-        renderApp(Counter, { title: 'Counter', width: 400, height: 300 });
+        renderApp(<Counter />, { title: 'Counter', width: 400, height: 300 });
     "#);
 
-    let arena = Bump::new();
-    let mut interner = Interner::new();
-    
-    // Manual parsing & eval must happen before eval borrows interner
-    let mut sm = SourceMap::new();
-    let file_id = sm.add_file("app.tsx".into(), app_src.clone());
-    let mut lexer = Lexer::new(&app_src, file_id, &mut interner);
-    let tokens = lexer.tokenise_all().expect("Lexing failed");
-    let mut parser = Parser::new(&tokens, &arena, &mut interner);
-    let program = parser.parse_program().expect("Parsing failed");
+    // Initial render: count should be 0
+    assert_eq!(renderer.get_text("count"), "0");
 
-    let mut eval = Evaluator::new(&mut interner, &arena);
+    // Simulate a button press
+    renderer.press("btn");
 
-    // Setup Native APIs explicitly since we're using evaluatior raw
-    let app = Rc::new(std::cell::RefCell::new(
-        tsnat_react::render::Application::new("Headless", 800, 600).unwrap()
-    ));
+    // After one press: count should be 1
+    assert_eq!(renderer.get_text("count"), "1");
+}
 
-    {
-        let mut env_mut = eval.env.borrow_mut();
-        let app_clone1 = Rc::clone(&app);
-        let create_widget = Rc::new(move |args: Vec<Value<'_>>, _this| {
-            if let Some(Value::String(tag)) = args.get(0) {
-                let text = if let Some(Value::String(s)) = args.get(1) { Some(s.to_string()) } else { None };
-                let kind = if tag.as_ref() == "div" { tsnat_react::render::IntrinsicTag::Div } else { tsnat_react::render::IntrinsicTag::Span };
-                let id = app_clone1.borrow_mut().create_widget(kind, text);
-                return Ok(Value::Number(id as f64));
-            }
-            Ok(Value::Undefined)
-        });
-        let sym1 = eval.interner.intern("__tsnat_createWidget");
-        env_mut.define(sym1, Value::NativeFunction(create_widget));
+// ════════════════════════════════════════════════════════════════════════════
+// Reconciler — initial render
+// ════════════════════════════════════════════════════════════════════════════
 
-        let app_clone2 = Rc::clone(&app);
-        let append_child = Rc::new(move |args: Vec<Value<'_>>, _this| {
-            if let (Some(Value::Number(p)), Some(Value::Number(c))) = (args.get(0), args.get(1)) {
-                app_clone2.borrow_mut().append_child(*p as u32, *c as u32);
-            }
-            Ok(Value::Undefined)
-        });
-        let sym2 = eval.interner.intern("__tsnat_appendChild");
-        env_mut.define(sym2, Value::NativeFunction(append_child));
+#[test]
+fn test_render_text_node() {
+    let r = headless_render(r#"
+        import { renderApp } from 'tsnat/react';
+        import React from 'react';
+        renderApp(<Text testId="t">hello</Text>, { title: 'T', width: 200, height: 100 });
+    "#);
+    assert_eq!(r.get_text("t"), "hello");
+}
 
-        let app_clone3 = Rc::clone(&app);
-        let set_root = Rc::new(move |args: Vec<Value<'_>>, _this| {
-            if let Some(Value::Number(id)) = args.get(0) {
-                app_clone3.borrow_mut().set_root(*id as u32);
-            }
-            Ok(Value::Undefined)
-        });
-        let sym3 = eval.interner.intern("__tsnat_setRoot");
-        env_mut.define(sym3, Value::NativeFunction(set_root));
-        
-        let sym4 = eval.interner.intern("__tsnat_addEventListener");
-        let add_event_listener = Rc::new(move |args: Vec<Value<'_>>, _this| {
-            // Evaluator handles __tsnat_addEventListener natively, we don't need to re-implement it here 
-            // wait actually our test Evaluator doesn't intercept if it's called internally by React shim. 
-            // Or does it? In eval.rs it's hardcoded for `Expr::Call` where `call.callee` is `__tsnat_addEventListener`.
-            // So we don't need to bind it here! It works magically inside AST evaluation!
-            Ok(Value::Undefined)
-        });
-        env_mut.define(sym4, Value::NativeFunction(add_event_listener));
-    }
+#[test]
+fn test_render_view_children() {
+    let r = headless_render(r#"
+        import { renderApp } from 'tsnat/react';
+        import React from 'react';
+        renderApp(
+            <View>
+                <Text testId="a">first</Text>
+                <Text testId="b">second</Text>
+            </View>,
+            { title: 'T', width: 200, height: 100 }
+        );
+    "#);
+    assert_eq!(r.get_text("a"), "first");
+    assert_eq!(r.get_text("b"), "second");
+}
 
-    if let Err(e) = eval.eval_program(&program) {
-        panic!("Evaluation failed: {:?}", e);
-    }
+#[test]
+fn test_render_conditional() {
+    let r = headless_render(r#"
+        import { renderApp } from 'tsnat/react';
+        import React, { useState } from 'react';
+        function App() {
+            const [show, setShow] = useState(true);
+            return (
+                <View>
+                    {show && <Text testId="msg">visible</Text>}
+                    <Button testId="toggle" onPress={() => setShow(s => !s)}>
+                        <Text>Toggle</Text>
+                    </Button>
+                </View>
+            );
+        }
+        renderApp(<App />, { title: 'T', width: 200, height: 100 });
+    "#);
 
-    // Initial state verification
-    {
-        let app_ref = app.borrow();
-        assert!(app_ref.get_root().is_some(), "Root should be mounted");
-        
-        let mut found_count = false;
-        for (_, widget) in app_ref.widgets.iter() {
-            if let Some(txt) = &widget.text_node {
-                if txt.contains("0") { found_count = true; }
+    assert_eq!(r.get_text("msg"), "visible");
+    r.press("toggle");
+    assert!(r.find("msg").is_none(), "element should be unmounted");
+    r.press("toggle");
+    assert_eq!(r.get_text("msg"), "visible");
+}
+
+#[test]
+fn test_render_list() {
+    let r = headless_render(r#"
+        import { renderApp } from 'tsnat/react';
+        import React from 'react';
+        const items = ['apple', 'banana', 'cherry'];
+        renderApp(
+            <View>
+                {items.map((item, i) => (
+                    <Text key={item} testId={`item-${i}`}>{item}</Text>
+                ))}
+            </View>,
+            { title: 'T', width: 200, height: 200 }
+        );
+    "#);
+    assert_eq!(r.get_text("item-0"), "apple");
+    assert_eq!(r.get_text("item-1"), "banana");
+    assert_eq!(r.get_text("item-2"), "cherry");
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Hooks
+// ════════════════════════════════════════════════════════════════════════════
+
+#[test]
+fn test_hook_use_state() {
+    let r = headless_render(r#"
+        import { renderApp } from 'tsnat/react';
+        import React, { useState } from 'react';
+        function App() {
+            const [x, setX] = useState(0);
+            return (
+                <View>
+                    <Text testId="val">{x}</Text>
+                    <Button testId="inc" onPress={() => setX(v => v + 1)}><Text>+</Text></Button>
+                    <Button testId="dec" onPress={() => setX(v => v - 1)}><Text>-</Text></Button>
+                </View>
+            );
+        }
+        renderApp(<App />, { title: 'T', width: 200, height: 100 });
+    "#);
+    assert_eq!(r.get_text("val"), "0");
+    r.press("inc"); r.press("inc");
+    assert_eq!(r.get_text("val"), "2");
+    r.press("dec");
+    assert_eq!(r.get_text("val"), "1");
+}
+
+#[test]
+fn test_hook_use_effect() {
+    let r = headless_render(r#"
+        import { renderApp } from 'tsnat/react';
+        import React, { useState, useEffect } from 'react';
+        function App() {
+            const [count, setCount] = useState(0);
+            const [effects, setEffects] = useState(0);
+            useEffect(() => {
+                setEffects(e => e + 1);
+            }, [count]);
+            return (
+                <View>
+                    <Text testId="effects">{effects}</Text>
+                    <Button testId="inc" onPress={() => setCount(c => c + 1)}><Text>+</Text></Button>
+                </View>
+            );
+        }
+        renderApp(<App />, { title: 'T', width: 200, height: 100 });
+    "#);
+    // useEffect fires on mount (count=0) → effects=1
+    assert_eq!(r.get_text("effects"), "1");
+    r.press("inc"); // count=1 → effect fires → effects=2
+    assert_eq!(r.get_text("effects"), "2");
+}
+
+#[test]
+fn test_hook_use_memo() {
+    let r = headless_render(r#"
+        import { renderApp } from 'tsnat/react';
+        import React, { useState, useMemo } from 'react';
+
+        let computeCount = 0;
+
+        function App() {
+            const [n, setN] = useState(5);
+            const [other, setOther] = useState(0);
+            const factorial = useMemo(() => {
+                computeCount++;
+                let result = 1;
+                for (let i = 2; i <= n; i++) result *= i;
+                return result;
+            }, [n]);
+            return (
+                <View>
+                    <Text testId="fact">{factorial}</Text>
+                    <Button testId="inc-other" onPress={() => setOther(o => o + 1)}><Text>other</Text></Button>
+                </View>
+            );
+        }
+        renderApp(<App />, { title: 'T', width: 200, height: 100 });
+    "#);
+    assert_eq!(r.get_text("fact"), "120"); // 5! = 120
+    let count_before = r.get_global_number("computeCount");
+    r.press("inc-other"); // Changing 'other' should NOT recompute memo
+    assert_eq!(r.get_global_number("computeCount"), count_before);
+}
+
+#[test]
+fn test_hook_use_ref() {
+    let r = headless_render(r#"
+        import { renderApp } from 'tsnat/react';
+        import React, { useState, useRef } from 'react';
+        function App() {
+            const [, forceRender] = useState(0);
+            const renderCount = useRef(0);
+            renderCount.current++;
+            return (
+                <View>
+                    <Text testId="count">{renderCount.current}</Text>
+                    <Button testId="rerender" onPress={() => forceRender(n => n + 1)}><Text>render</Text></Button>
+                </View>
+            );
+        }
+        renderApp(<App />, { title: 'T', width: 200, height: 100 });
+    "#);
+    assert_eq!(r.get_text("count"), "1");
+    r.press("rerender");
+    assert_eq!(r.get_text("count"), "2");
+}
+
+#[test]
+fn test_hook_use_context() {
+    let r = headless_render(r#"
+        import { renderApp } from 'tsnat/react';
+        import React, { createContext, useContext } from 'react';
+        const ThemeContext = createContext('light');
+        function Child() {
+            const theme = useContext(ThemeContext);
+            return <Text testId="theme">{theme}</Text>;
+        }
+        function App() {
+            return (
+                <ThemeContext.Provider value="dark">
+                    <Child />
+                </ThemeContext.Provider>
+            );
+        }
+        renderApp(<App />, { title: 'T', width: 200, height: 100 });
+    "#);
+    assert_eq!(r.get_text("theme"), "dark");
+}
+
+#[test]
+fn test_hook_use_reducer() {
+    let r = headless_render(r#"
+        import { renderApp } from 'tsnat/react';
+        import React, { useReducer } from 'react';
+        type Action = { type: 'inc' } | { type: 'dec' } | { type: 'reset' };
+        function reducer(state: number, action: Action): number {
+            switch (action.type) {
+                case 'inc': return state + 1;
+                case 'dec': return state - 1;
+                case 'reset': return 0;
             }
         }
-        assert!(found_count, "Should find initial count 0 in widget tree");
-    }
-
-    // Synthesize a mouse click near x=50, y=50 which intersects our expanded click target box
-    app.borrow_mut().window.inject_event(NativeEvent::MouseClick { x: 50.0, y: 50.0 });
-    
-    let clicked = app.borrow_mut().tick().unwrap();
-    assert!(!clicked.is_empty(), "A widget should be targeted by the synthetic click");
-
-    for click_id in clicked {
-        let func_opt = eval.click_handlers.borrow().get(&click_id).cloned();
-        if let Some(func_val) = func_opt {
-            let res = eval.call_function(func_val, vec![], tsnat_common::span::Span::DUMMY);
-            assert!(res.is_ok(), "Click handler panicked");
+        function App() {
+            const [count, dispatch] = useReducer(reducer, 0);
+            return (
+                <View>
+                    <Text testId="count">{count}</Text>
+                    <Button testId="inc" onPress={() => dispatch({ type: 'inc' })}><Text>+</Text></Button>
+                    <Button testId="reset" onPress={() => dispatch({ type: 'reset' })}><Text>0</Text></Button>
+                </View>
+            );
         }
-    }
+        renderApp(<App />, { title: 'T', width: 200, height: 100 });
+    "#);
+    r.press("inc"); r.press("inc"); r.press("inc");
+    assert_eq!(r.get_text("count"), "3");
+    r.press("reset");
+    assert_eq!(r.get_text("count"), "0");
+}
 
-    app.borrow_mut().tick();
+// ════════════════════════════════════════════════════════════════════════════
+// Layout
+// ════════════════════════════════════════════════════════════════════════════
 
-    {
-        let app_ref = app.borrow();
-        let mut found_incremented = false;
-        for (_, widget) in app_ref.widgets.iter() {
-            if let Some(txt) = &widget.text_node {
-                if txt.contains("1") { found_incremented = true; }
-            }
-        }
-        assert!(found_incremented, "Counter state did not increment to 1!");
-    }
+#[test]
+fn test_layout_flex_row() {
+    let r = headless_render(r#"
+        import { renderApp } from 'tsnat/react';
+        import React from 'react';
+        renderApp(
+            <View style={{ flexDirection: 'row', width: 300, height: 100 }}>
+                <View testId="a" style={{ flex: 1, height: 100 }} />
+                <View testId="b" style={{ flex: 2, height: 100 }} />
+            </View>,
+            { title: 'T', width: 300, height: 100 }
+        );
+    "#);
+    let a = r.get_layout("a");
+    let b = r.get_layout("b");
+    // a should be 1/3 width, b should be 2/3 width
+    assert!((a.width - 100.0).abs() < 1.0, "a.width={}", a.width);
+    assert!((b.width - 200.0).abs() < 1.0, "b.width={}", b.width);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Real window test (only runs with display + --features real_window)
+// ════════════════════════════════════════════════════════════════════════════
+
+#[cfg(feature = "real_window")]
+#[test]
+fn test_real_window_opens_and_closes() {
+    use tsnat_react::WindowOptions;
+    use std::time::Duration;
+
+    let handle = tsnat_react::spawn_window(r#"
+        import { renderApp } from 'tsnat/react';
+        import React from 'react';
+        renderApp(<View><Text>Hello, Native!</Text></View>, { title: 'Test', width: 400, height: 300 });
+    "#, WindowOptions::default());
+
+    // Wait for first frame
+    std::thread::sleep(Duration::from_millis(100));
+    assert!(handle.is_running());
+
+    // Close the window
+    handle.close();
+    std::thread::sleep(Duration::from_millis(50));
+    assert!(!handle.is_running());
 }

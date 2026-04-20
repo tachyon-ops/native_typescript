@@ -1,0 +1,132 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/tsnat-lex",
+    "crates/tsnat-parse",
+    "crates/tsnat-types",
+    "crates/tsnat-ir",
+    "crates/tsnat-eval",
+    "crates/tsnat-ffi",
+    "crates/tsnat-react",
+    "crates/tsnat-codegen",
+    "crates/tsnat-cli",
+]
+
+# ── Shared dependency versions ────────────────────────────────────────────────
+# All crates pin versions here. Sub-crate Cargo.toml files use:
+#   dependency = { workspace = true }
+
+[workspace.dependencies]
+# Error handling
+thiserror   = "2"
+miette      = { version = "7", features = ["fancy"] }
+
+# Collections
+indexmap    = "2"
+rustc-hash  = "2"
+
+# Arena allocation
+bumpalo     = "3"
+
+# Async runtime (CLI and tooling only — never in generated runtime)
+tokio       = { version = "1", features = ["full"] }
+
+# LLVM codegen (Phase 5)
+inkwell     = { version = "0.4", features = ["llvm18-0"] }
+
+# Dynamic library loading (FFI, Phase 2)
+libloading  = "0.8"
+
+# Ordered float (for type interning)
+ordered-float = "4"
+
+# Test utilities
+tempfile    = "3"
+
+# ── Integration test configuration ───────────────────────────────────────────
+# Integration tests live in tests/ at the workspace root.
+# Each test file is an independent binary that links against the relevant crates.
+
+[[test]]
+name    = "repl_smoke"
+path    = "tests/phase1/repl_smoke.rs"
+
+[[test]]
+name    = "lex_literals"
+path    = "tests/phase1/lex/literals.rs"
+
+[[test]]
+name    = "lex_keywords_operators"
+path    = "tests/phase1/lex/keywords_operators.rs"
+
+[[test]]
+name    = "parse_expressions"
+path    = "tests/phase1/parse/expressions.rs"
+
+[[test]]
+name    = "parse_statements"
+path    = "tests/phase1/parse/statements.rs"
+
+[[test]]
+name    = "parse_types"
+path    = "tests/phase1/parse/types.rs"
+
+[[test]]
+name    = "eval_primitives_operators"
+path    = "tests/phase1/eval/primitives_operators.rs"
+
+[[test]]
+name    = "eval_control_flow"
+path    = "tests/phase1/eval/control_flow.rs"
+
+[[test]]
+name    = "eval_functions_closures"
+path    = "tests/phase1/eval/functions_closures.rs"
+
+[[test]]
+name    = "eval_classes"
+path    = "tests/phase1/eval/classes.rs"
+
+[[test]]
+name    = "eval_async_generators"
+path    = "tests/phase1/eval/async_generators.rs"
+
+[[test]]
+name    = "eval_destructuring_objects"
+path    = "tests/phase1/eval/destructuring_objects.rs"
+
+[[test]]
+name    = "eval_modules"
+path    = "tests/phase1/eval/modules.rs"
+
+[[test]]
+name    = "eval_advanced_patterns"
+path    = "tests/phase1/eval/advanced_patterns.rs"
+
+[[test]]
+name    = "builtin_array"
+path    = "tests/phase1/eval/builtins/array.rs"
+
+[[test]]
+name    = "builtin_string_number_math"
+path    = "tests/phase1/eval/builtins/string_number_math.rs"
+
+[[test]]
+name    = "builtin_collections_json"
+path    = "tests/phase1/eval/builtins/collections_json.rs"
+
+[[test]]
+name    = "ffi_roundtrip"
+path    = "tests/phase2/ffi_roundtrip.rs"
+
+[[test]]
+name    = "type_errors"
+path    = "tests/phase3/type_errors.rs"
+
+[[test]]
+name = "render_window"
+path = "tests/phase4/render_window.rs"
+
+[[test]]
+name = "native_binary"
+path = "tests/phase5/native_binary.rs"
