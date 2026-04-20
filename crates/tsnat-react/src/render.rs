@@ -1,8 +1,7 @@
 // tsnat-react/src/render.rs
 use crate::window::{Window, NativeEvent};
 use crate::layout::LayoutTree;
-use crate::font::{FontRenderer, GlyphAtlas};
-use sdl3_sys::everything::{SDL_FRect, SDL_SetRenderDrawColor, SDL_RenderFillRect};
+use crate::font::FontRenderer;
 use std::f32;
 use std::collections::HashMap;
 

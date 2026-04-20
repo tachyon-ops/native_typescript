@@ -1,6 +1,6 @@
 use std::ffi::CString;
 use std::ptr;
-use sdl3_sys::everything::{SDL_Window, SDL_Renderer, SDL_Init, SDL_INIT_VIDEO, SDL_CreateWindow, SDL_CreateRenderer, SDL_Quit, SDL_DestroyRenderer, SDL_DestroyWindow, SDL_Event, SDL_PollEvent, SDL_RenderClear, SDL_RenderPresent, SDL_SetRenderDrawColor};
+use sdl3_sys::everything::{SDL_Window, SDL_Renderer, SDL_Init, SDL_INIT_VIDEO, SDL_CreateWindow, SDL_CreateRenderer, SDL_Quit, SDL_DestroyRenderer, SDL_DestroyWindow, SDL_Event, SDL_RenderClear, SDL_RenderPresent, SDL_SetRenderDrawColor};
 use sdl3_sys::video::{SDL_WINDOW_HIDDEN, SDL_ShowWindow};
 use tsnat_common::diagnostic::{TsnatResult, TsnatError};
 
