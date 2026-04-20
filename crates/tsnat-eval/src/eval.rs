@@ -324,6 +324,42 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                             })
                         }
                     }
+                    Expr::Member(member) => {
+                        let obj = self.eval_expr(member.object)?;
+                        let key = member.property;
+                        match obj {
+                            Value::Object(obj_rc) => {
+                                obj_rc.borrow_mut().properties.insert(key, val.clone());
+                                Ok(val)
+                            }
+                            _ => Err(TsnatError::Runtime {
+                                message: "Cannot assign property on non-object".into(),
+                                span: Some(assign.span),
+                            })
+                        }
+                    }
+                    Expr::Index(index) => {
+                        let obj = self.eval_expr(index.object)?;
+                        let key_val = self.eval_expr(index.index)?;
+                        let key = match key_val {
+                            Value::String(s) => self.interner.intern(&s),
+                            Value::Number(n) => self.interner.intern(&n.to_string()),
+                            _ => return Err(TsnatError::Runtime {
+                                message: "Invalid index type for assignment".into(),
+                                span: Some(index.span),
+                            }),
+                        };
+                        match obj {
+                            Value::Object(obj_rc) => {
+                                obj_rc.borrow_mut().properties.insert(key, val.clone());
+                                Ok(val)
+                            }
+                            _ => Err(TsnatError::Runtime {
+                                message: "Cannot assign property on non-object".into(),
+                                span: Some(assign.span),
+                            })
+                        }
+                    }
                     _ => Err(TsnatError::Runtime {
                         message: "Invalid left-hand side in assignment".into(),
                         span: Some(assign.span),
@@ -485,7 +521,9 @@ impl<'a, 'src> Evaluator<'a, 'src> {
             (Value::String(l), EqEqEq, Value::String(r)) => Ok(Value::Bool(l == r)),
             (Value::String(l), BangEqEq, Value::String(r)) => Ok(Value::Bool(l != r)),
             (Value::Undefined, EqEqEq, Value::Undefined) => Ok(Value::Bool(true)),
+            (l, EqEqEq, Value::Undefined) => Ok(Value::Bool(matches!(l, Value::Undefined))),
             (Value::Null, EqEqEq, Value::Null) => Ok(Value::Bool(true)),
+            (l, EqEqEq, Value::Null) => Ok(Value::Bool(matches!(l, Value::Null))),
             (l, BangEqEq, Value::Undefined) => Ok(Value::Bool(!matches!(l, Value::Undefined))),
             (l, BangEqEq, Value::Null) => Ok(Value::Bool(!matches!(l, Value::Null))),
             (Value::String(l), Add, Value::String(r)) => Ok(Value::String(Rc::from(format!("{}{}", l, r)))),

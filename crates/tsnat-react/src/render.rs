@@ -143,7 +143,7 @@ impl Application {
                             
                             if cx >= x && cx <= x + click_w && cy >= y && cy <= y + click_h {
                                 clicked_widgets.push(id);
-                                break; // Only click the topmost widget
+                                // Removed break to simulate event bubbling to parent widgets
                             }
                         }
                     }

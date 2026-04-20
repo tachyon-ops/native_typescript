@@ -14,6 +14,7 @@ pub struct Window {
     pub renderer: *mut SDL_Renderer,
     pub width: u32,
     pub height: u32,
+pub synthetic_events: Vec<NativeEvent>,
 }
 
 impl Window {
@@ -54,6 +55,7 @@ impl Window {
                 renderer,
                 width,
                 height,
+synthetic_events: Vec::new(),
             })
         }
     }
@@ -63,8 +65,11 @@ impl Window {
         }
     }
 
+    pub fn inject_event(&mut self, event: NativeEvent) { self.synthetic_events.push(event); }
+
     pub fn poll_events(&mut self) -> Vec<NativeEvent> {
         let mut events = Vec::new();
+        events.append(&mut self.synthetic_events);
         let mut evt: SDL_Event = unsafe { std::mem::zeroed() };
         
         unsafe {

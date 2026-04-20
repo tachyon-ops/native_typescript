@@ -10,3 +10,7 @@ tsnat-lex = { path = "../tsnat-lex" }
 tsnat-parse = { path = "../tsnat-parse" }
 tsnat-eval = { path = "../tsnat-eval" }
 tsnat-react = { path = "../tsnat-react" }
+
+[[test]]
+name = "render_window"
+path = "../../tests/phase4/render_window.rs"
