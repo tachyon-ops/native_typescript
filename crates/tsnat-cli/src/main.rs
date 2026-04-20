@@ -38,7 +38,7 @@ fn main() -> Result<(), String> {
     println!("Starting Tsnat UI Runtime...");
     println!("Loading {}...", target_file);
 
-    let mut app_src = fs::read_to_string(target_file).expect("Failed to read Target TS File");
+    let app_src = fs::read_to_string(target_file).expect("Failed to read Target TS File");
 
 
 
