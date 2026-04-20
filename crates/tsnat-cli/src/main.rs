@@ -40,7 +40,7 @@ fn main() -> Result<(), String> {
 
     let mut app_src = fs::read_to_string(target_file).expect("Failed to read Target TS File");
 
-    let react_src = fs::read_to_string("crates/tsnat-cli/src/react.ts").expect("Failed to read react.ts");
+
 
     let app = Rc::new(RefCell::new(
         Application::new("TypeScript Native", 800, 600).map_err(|e| format!("{:?}", e))?
@@ -48,7 +48,7 @@ fn main() -> Result<(), String> {
 
     let arena = Bump::new();
     let mut interner = Interner::new();
-    let mut eval = Evaluator::new(&mut interner);
+    let mut eval = Evaluator::new(&mut interner, &arena);
     eval.source = Some(app_src.clone());
 
     // 1. Inject __tsnat_createWidget
@@ -91,6 +91,38 @@ fn main() -> Result<(), String> {
         Ok(Value::Undefined)
     });
 
+    let app_clone_remove = Rc::clone(&app);
+    let remove_child = Rc::new(move |args: Vec<Value<'_>>, _this: Option<Value<'_>>| {
+        let parent_id = match &args.get(0) {
+            Some(Value::Number(n)) => *n as u32,
+            _ => return Err(TsnatError::Runtime { message: "parent must be u32".into(), span: None }),
+        };
+        let child_id = match &args.get(1) {
+            Some(Value::Number(n)) => *n as u32,
+            _ => return Err(TsnatError::Runtime { message: "child must be u32".into(), span: None }),
+        };
+        app_clone_remove.borrow_mut().remove_child(parent_id, child_id);
+        Ok(Value::Undefined)
+    });
+
+    let app_clone_insert = Rc::clone(&app);
+    let insert_before = Rc::new(move |args: Vec<Value<'_>>, _this: Option<Value<'_>>| {
+        let parent_id = match &args.get(0) {
+            Some(Value::Number(n)) => *n as u32,
+            _ => return Err(TsnatError::Runtime { message: "parent must be u32".into(), span: None }),
+        };
+        let child_id = match &args.get(1) {
+            Some(Value::Number(n)) => *n as u32,
+            _ => return Err(TsnatError::Runtime { message: "child must be u32".into(), span: None }),
+        };
+        let before_id = match &args.get(2) {
+            Some(Value::Number(n)) => *n as u32,
+            _ => return Err(TsnatError::Runtime { message: "before_child must be u32".into(), span: None }),
+        };
+        app_clone_insert.borrow_mut().insert_before(parent_id, child_id, before_id);
+        Ok(Value::Undefined)
+    });
+
     let app_clone_root = Rc::clone(&app);
     let set_root = Rc::new(move |args: Vec<Value<'_>>, _this: Option<Value<'_>>| {
         let root_id = match &args.get(0) {
@@ -101,22 +133,24 @@ fn main() -> Result<(), String> {
         Ok(Value::Undefined)
     });
 
+
     // Bind to the environment
     {
         let mut env = eval.env.borrow_mut();
         let sym_create = eval.interner.intern("__tsnat_createWidget");
         let sym_append = eval.interner.intern("__tsnat_appendChild");
+        let sym_remove = eval.interner.intern("__tsnat_removeChild");
+        let sym_insert = eval.interner.intern("__tsnat_insertBefore");
         let sym_set_root = eval.interner.intern("__tsnat_setRoot");
 
         env.define(sym_create, Value::NativeFunction(create_widget));
         env.define(sym_append, Value::NativeFunction(append_child));
+        env.define(sym_remove, Value::NativeFunction(remove_child));
+        env.define(sym_insert, Value::NativeFunction(insert_before));
         env.define(sym_set_root, Value::NativeFunction(set_root));
     }
 
     // Run the shims & apps
-    println!("Evaluating react shim...");
-    run_script(&react_src, &mut eval, &arena)?;
-    
     println!("Evaluating application...");
     if let Err(e) = run_script(&app_src, &mut eval, &arena) {
         println!("Error running loaded app: {:?}", e);
@@ -146,7 +180,7 @@ fn main() -> Result<(), String> {
 
         // Evaluate callbacks inside global sandbox across internal bounds!
         for click_id in clicked_widgets {
-            let func_opt = eval.click_handlers.get(&click_id).cloned();
+            let func_opt = eval.click_handlers.borrow().get(&click_id).cloned();
             if let Some(func) = func_opt {
                 if let Err(e) = eval.call_function(func, vec![], tsnat_common::span::Span::DUMMY) {
                     println!("Native Dispatch Error: {:?}", e);

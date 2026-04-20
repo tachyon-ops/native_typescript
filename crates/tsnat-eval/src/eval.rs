@@ -19,12 +19,13 @@ pub struct Evaluator<'a, 'src> {
     pub env: Rc<RefCell<Environment<'a>>>,
     pub interner: &'src mut Interner,
     pub ffi_loader: std::sync::Arc<tsnat_ffi::loader::NativeLibraryLoader>,
-    pub click_handlers: IndexMap<u32, Value<'a>>,
+    pub click_handlers: Rc<RefCell<IndexMap<u32, Value<'a>>>>,
     pub source: Option<String>,
+    pub arena: &'a bumpalo::Bump,
 }
 
 impl<'a, 'src> Evaluator<'a, 'src> {
-    pub fn new(interner: &'src mut Interner) -> Self {
+    pub fn new(interner: &'src mut Interner, arena: &'a bumpalo::Bump) -> Self {
         let global_env = Rc::new(RefCell::new(Environment::new(None)));
         let ffi_loader = std::sync::Arc::new(tsnat_ffi::loader::NativeLibraryLoader::new());
         
@@ -56,8 +57,9 @@ impl<'a, 'src> Evaluator<'a, 'src> {
             env: global_env,
             interner,
             ffi_loader,
-            click_handlers: IndexMap::new(),
+            click_handlers: Rc::new(RefCell::new(IndexMap::new())),
             source: None,
+            arena,
         }
     }
 
@@ -204,6 +206,72 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                 self.env.borrow_mut().define(func_name_sym, native_fn);
                 Ok(ControlFlow::Normal(Value::Undefined))
             }
+            Stmt::Import(import_decl) => {
+                let source_path = self.interner.get(import_decl.source).to_string();
+                let mut path = std::path::PathBuf::from(&source_path);
+                if path.extension().is_none() {
+                    path.set_extension("ts");
+                }
+                
+                let content = std::fs::read_to_string(&path).map_err(|e| TsnatError::Runtime {
+                    message: format!("Failed to read imported file {:?}: {}", path, e),
+                    span: Some(import_decl.span),
+                })?;
+                
+                let mut lexer = tsnat_lex::lexer::Lexer::new(&content, 0, self.interner);
+                let tokens = lexer.tokenise_all().map_err(|e| TsnatError::Runtime {
+                    message: format!("Import Lexer Error: {:?}", e),
+                    span: Some(import_decl.span),
+                })?;
+                
+                let mut parser = tsnat_parse::parser::Parser::new(&tokens, self.arena, self.interner);
+                let program = parser.parse_program().map_err(|e| TsnatError::Runtime {
+                    message: format!("Import Parser Error: {:?}", e),
+                    span: Some(import_decl.span),
+                })?;
+                
+                let module_env = Rc::new(RefCell::new(Environment::new(Some(self.env.clone()))));
+                let previous_env = self.env.clone();
+                self.env = module_env.clone();
+                
+                let previous_source = self.source.take();
+                self.source = Some(content);
+                
+                for inner_stmt in program.stmts.iter() {
+                    self.exec_stmt(inner_stmt)?;
+                }
+                
+                self.source = previous_source;
+                self.env = previous_env;
+                
+                for specifier in import_decl.specifiers.iter() {
+                    match specifier {
+                        tsnat_parse::ast::ImportSpecifier::Named(local, imported_opt) => {
+                            let imported = imported_opt.unwrap_or(*local);
+                            if let Some(val) = module_env.borrow().get(imported) {
+                                self.env.borrow_mut().define(*local, val);
+                            } else {
+                                return Err(TsnatError::Runtime {
+                                    message: format!("Module does not export '{}'", self.interner.get(imported)),
+                                    span: Some(import_decl.span),
+                                });
+                            }
+                        }
+                        _ => return Err(TsnatError::Runtime {
+                            message: "Unsupported import specifier".into(),
+                            span: Some(import_decl.span),
+                        }),
+                    }
+                }
+                
+                Ok(ControlFlow::Normal(Value::Undefined))
+            }
+            Stmt::Export(export_decl) => {
+                if let Some(decl) = export_decl.decl {
+                    self.exec_stmt(decl)?;
+                }
+                Ok(ControlFlow::Normal(Value::Undefined))
+            }
             _ => Err(TsnatError::Runtime {
                 message: format!("Unimplemented statement type: {:?}", stmt),
                 span: Some(stmt.span()),
@@ -269,13 +337,12 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                             let id_val = self.eval_expr(call.args[0])?;
                             let func_val = self.eval_expr(call.args[1])?;
                             if let Value::Number(n) = id_val {
-                                self.click_handlers.insert(n as u32, func_val);
+                                self.click_handlers.borrow_mut().insert(n as u32, func_val);
                             }
                         }
                         return Ok(Value::Undefined);
                     }
                 }
-                
                 let callee = self.eval_expr(call.callee)?;
                 let mut args = Vec::new();
                 for arg in call.args.iter() {

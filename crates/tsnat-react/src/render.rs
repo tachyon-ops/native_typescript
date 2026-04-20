@@ -68,6 +68,26 @@ impl Application {
             self.layout.insert_child(parent_id, child_id, index);
         }
     }
+
+    pub fn remove_child(&mut self, parent_id: u32, child_id: u32) {
+        if let Some(parent) = self.widgets.get_mut(&parent_id) {
+            parent.children.retain(|&c| c != child_id);
+            self.layout.remove_child(parent_id, child_id);
+        }
+    }
+
+    pub fn insert_before(&mut self, parent_id: u32, child_id: u32, before_child_id: u32) {
+        if let Some(parent) = self.widgets.get_mut(&parent_id) {
+            if let Some(index) = parent.children.iter().position(|&c| c == before_child_id) {
+                parent.children.insert(index, child_id);
+                self.layout.insert_child(parent_id, child_id, index as u32);
+            } else {
+                parent.children.push(child_id);
+                let idx = parent.children.len() as u32 - 1;
+                self.layout.insert_child(parent_id, child_id, idx);
+            }
+        }
+    }
     
     pub fn get_root(&self) -> Option<u32> {
         self.root_widget

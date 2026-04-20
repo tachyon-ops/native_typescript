@@ -1,9 +1,9 @@
-const React = {
+export const React = {
     createElement: function(tag: string, props: any, children: any) {
         let textNode = null;
 
-        if (tag === "span" && typeof children[0] === "string") {
-            textNode = children[0];
+        if (tag === "span" && typeof children["0"] === "string") {
+            textNode = children["0"];
         }
 
         let id = __tsnat_createWidget(tag, textNode);
@@ -25,8 +25,10 @@ const React = {
     }
 };
 
-const ReactDOM = {
+export const ReactDOM = {
     render: function(root_component: any, root_id: any) {
-        __tsnat_setRoot(root_component.id);
+        if (typeof root_component === "object" && root_component.id !== undefined) {
+            __tsnat_setRoot(root_component.id);
+        }
     }
 };

@@ -19,7 +19,7 @@ fn eval_string(source: &str) -> String {
 
     let mut parser = Parser::new(&tokens, &arena, &mut interner);
     let program = parser.parse_program().unwrap();
-    let result = evaluate(&program, &mut interner).unwrap();
+    let result = evaluate(&program, &mut interner, &arena).unwrap();
     format!("{:?}", result)
 }
 

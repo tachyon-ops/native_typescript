@@ -65,6 +65,9 @@ impl<'a> Checker<'a> {
                 }
             }
             Expr::Paren(inner, _) => self.infer_expr(inner),
+            Expr::JSXElement(_) => TYPE_ANY, // TODO: Resolve against JSX.IntrinsicElements
+            Expr::JSXText(_, _) => TYPE_STRING,
+            Expr::JSXExpressionContainer(inner, _) => self.infer_expr(inner),
             // TODO: other expression forms
             _ => TYPE_ANY,
         }

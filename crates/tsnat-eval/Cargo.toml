@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 tsnat-common = { path = "../tsnat-common" }
+tsnat-lex = { path = "../tsnat-lex" }
 tsnat-parse = { path = "../tsnat-parse" }
 tsnat-types = { path = "../tsnat-types" }
 tsnat-ffi = { path = "../tsnat-ffi" }

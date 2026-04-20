@@ -41,7 +41,7 @@ fn run_eval(src: &str, lib_path: &PathBuf) -> Value<'static> {
     let mut parser = Parser::new(&tokens, &arena, &mut interner);
     let ast = parser.parse_program().expect("Failed to parse");
 
-    let mut eval = Evaluator::new(&mut interner);
+    let mut eval = Evaluator::new(&mut interner, &arena);
     let mut last_val = Value::Undefined;
     
     for stmt in ast.stmts.iter() {
@@ -77,7 +77,7 @@ fn test_ffi_native_invocation() {
     let mut parser = Parser::new(&tokens, &arena, &mut interner);
     let ast = parser.parse_program().expect("Failed to parse");
 
-    let mut eval = Evaluator::new(&mut interner);
+    let mut eval = Evaluator::new(&mut interner, &arena);
     for stmt in ast.stmts.iter() {
         eval.exec_stmt(&stmt).expect("Eval failed");
     }

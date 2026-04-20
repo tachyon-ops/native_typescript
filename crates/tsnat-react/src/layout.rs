@@ -50,6 +50,18 @@ impl LayoutTree {
         }
     }
 
+    pub fn remove_child(&mut self, parent_id: u32, child_id: u32) {
+        let mut child_node = self.nodes.remove(&child_id);
+        if let Some(ref mut child) = child_node {
+            if let Some(parent) = self.nodes.get_mut(&parent_id) {
+                parent.yoga_node.remove_child(&mut child.yoga_node);
+            }
+        }
+        if let Some(child) = child_node {
+            self.nodes.insert(child_id, child);
+        }
+    }
+
     pub fn calculate_layout(&mut self, width: f32, height: f32) {
         if let Some(root_id) = self.root_id {
             if let Some(root) = self.nodes.get_mut(&root_id) {
