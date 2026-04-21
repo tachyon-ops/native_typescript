@@ -26,11 +26,17 @@ pub struct JsObject<'a> {
     pub prototype: Option<Rc<RefCell<JsObject<'a>>>>,
 }
 
+pub enum FuncBody<'a> {
+    Stmts(NodeList<'a, Stmt<'a>>),
+    Expr(&'a tsnat_parse::ast::Expr<'a>),
+}
+
 pub struct JsFunction<'a> {
     pub name: Option<Symbol>,
     pub params: NodeList<'a, Param<'a>>,
-    pub body: NodeList<'a, Stmt<'a>>,
+    pub body: FuncBody<'a>,
     pub closure: Rc<RefCell<Environment<'a>>>,
+    pub properties: RefCell<IndexMap<Symbol, Value<'a>>>,
 }
 
 impl<'a> Value<'a> {
@@ -43,6 +49,10 @@ impl<'a> Value<'a> {
             Value::String(s) => !s.is_empty(),
             _ => true,
         }
+    }
+
+    pub fn display(&self) -> String {
+        format!("{:?}", self)
     }
 }
 

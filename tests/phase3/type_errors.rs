@@ -4,6 +4,7 @@
 /// Tests that the type checker correctly catches type errors and accepts valid programs.
 /// ALGO: See SPECS.md §5 FR-TYP-001 through FR-TYP-010
 
+#[path = "../common/mod.rs"]
 mod common;
 use common::*;
 use tsnat_types::DiagnosticCode::*;

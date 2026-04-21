@@ -1,6 +1,7 @@
 /// Evaluator tests — Array built-in methods.
 /// ALGO: See SPECS.md §7 FR-EVAL-003
 
+#[path = "../../../common/mod.rs"]
 mod common;
 use common::*;
 
@@ -241,7 +242,7 @@ fn test_eval_array_values() {
 #[test]
 fn test_eval_array_entries() {
     expect_string(
-        "[...['a', 'b'].entries()].map(([i, v]: [number, string]) => `${i}:${v}`).join(',')",
+        "[...['a', 'b'].entries()].map((entry: any) => `${entry[0]}:${entry[1]}`).join(',')",
         "0:a,1:b",
     );
 }

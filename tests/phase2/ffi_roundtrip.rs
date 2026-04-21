@@ -4,6 +4,7 @@
 /// Tests that TypeScript can call a C function via FFI and receive a typed result.
 /// ALGO: See SPECS.md §8 FR-FFI-001 through FR-FFI-005
 
+#[path = "../common/mod.rs"]
 mod common;
 use common::*;
 

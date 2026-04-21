@@ -1,6 +1,7 @@
 /// Parser tests — statement parsing.
 /// ALGO: See SPECS.md §4 FR-PAR-001, FR-PAR-004
 
+#[path = "../../common/mod.rs"]
 mod common;
 use common::*;
 

@@ -547,7 +547,33 @@ impl<'src, 'arena> Parser<'src, 'arena> {
 
         if self.peek().kind == TokenKind::LParen {
             // Method or Constructor
-            let func = self.parse_function_decl(false)?;
+            self.expect(TokenKind::LParen)?;
+            let mut params = Vec::new();
+            while self.peek().kind != TokenKind::RParen && !self.is_at_end() {
+                params.push(self.parse_param()?);
+                if !self.match_kind(TokenKind::Comma) { break; }
+            }
+            self.expect(TokenKind::RParen)?;
+
+            let return_ty = if self.match_kind(TokenKind::Colon) {
+                Some(self.parse_type_node()?)
+            } else {
+                None
+            };
+
+            let body = if self.peek().kind == TokenKind::LBrace {
+                Some(self.parse_block_stmt()?)
+            } else {
+                None
+            };
+
+            let end = body.map(|b| b.span).or(return_ty.map(|t| t.span())).unwrap_or(start);
+            let func = FunctionDecl {
+                id: Some(key),
+                params: self.arena.alloc_slice_fill_iter(params),
+                body, return_ty, is_async: false, is_generator: false, span: start.merge(end),
+            };
+
             if key == self.interner.intern("constructor") {
                 Ok(ClassMember::Constructor(func))
             } else {
@@ -749,6 +775,10 @@ impl<'src, 'arena> Parser<'src, 'arena> {
 
     /// Assignment is right-associative, lowest precedence above comma.
     fn parse_assignment_expr(&mut self) -> TsnatResult<Expr<'arena>> {
+        if self.is_arrow_function() {
+            return self.parse_arrow_function();
+        }
+
         let left = self.parse_conditional_expr()?;
 
         if let Some(op) = self.assignment_op() {
@@ -760,12 +790,93 @@ impl<'src, 'arena> Parser<'src, 'arena> {
             return Ok(Expr::Assign(AssignExpr { op, left, right, span }));
         }
 
-        // Arrow: `(params) => body` or `ident => body`
-        if self.peek().kind == TokenKind::Arrow {
-            return self.parse_arrow_tail(left);
+        Ok(left)
+    }
+
+    fn is_arrow_function(&self) -> bool {
+        let kind = self.peek().kind;
+        if kind == TokenKind::Ident {
+            return self.peek_ahead(1).kind == TokenKind::Arrow;
+        }
+        if kind == TokenKind::LParen {
+            let mut i = 1;
+            let mut depth = 1;
+            while depth > 0 {
+                let k = self.peek_ahead(i).kind;
+                if k == TokenKind::Eof { return false; }
+                if k == TokenKind::LParen { depth += 1; }
+                if k == TokenKind::RParen { depth -= 1; }
+                i += 1;
+            }
+            let next = self.peek_ahead(i).kind;
+            if next == TokenKind::Arrow {
+                return true;
+            }
+            if next == TokenKind::Colon {
+                let mut j = i + 1;
+                let mut type_depth = 0;
+                while j < self.tokens.len() {
+                    let k = self.peek_ahead(j).kind;
+                    if k == TokenKind::Eof { return false; }
+                    if k == TokenKind::Arrow && type_depth == 0 { return true; }
+                    if k == TokenKind::Lt { type_depth += 1; }
+                    if k == TokenKind::Gt { type_depth -= 1; }
+                    if k == TokenKind::LBrace { type_depth += 1; }
+                    if k == TokenKind::RBrace { type_depth -= 1; }
+                    if k == TokenKind::Semicolon || k == TokenKind::Eq { return false; }
+                    j += 1;
+                }
+            }
+        }
+        false
+    }
+
+    fn parse_arrow_function(&mut self) -> TsnatResult<Expr<'arena>> {
+        let start = self.peek().span;
+        let mut params = Vec::new();
+        
+        if self.peek().kind == TokenKind::Ident {
+            let name_tok = self.advance();
+            params.push(Param {
+                name: name_tok.value,
+                span: name_tok.span,
+                ty: None,
+                init: None,
+                is_rest: false,
+            });
+        } else {
+            self.expect(TokenKind::LParen)?;
+            while self.peek().kind != TokenKind::RParen && !self.is_at_end() {
+                params.push(self.parse_param()?);
+                if !self.match_kind(TokenKind::Comma) { break; }
+            }
+            self.expect(TokenKind::RParen)?;
         }
 
-        Ok(left)
+        if self.match_kind(TokenKind::Colon) {
+            self.parse_type_node()?;
+        }
+
+        self.expect(TokenKind::Arrow)?;
+
+        let body = if self.peek().kind == TokenKind::LBrace {
+            ArrowBody::Block(self.parse_block_stmt()?)
+        } else {
+            let body_expr = self.parse_assignment_expr()?;
+            ArrowBody::Expr(self.alloc(body_expr))
+        };
+
+        let span = match &body {
+            ArrowBody::Expr(e) => start.merge(e.span()),
+            ArrowBody::Block(b) => start.merge(b.span),
+        };
+
+        Ok(Expr::Arrow(ArrowExpr {
+            params: self.arena.alloc_slice_fill_iter(params),
+            body,
+            is_async: false,
+            span,
+        }))
     }
 
     fn assignment_op(&self) -> Option<AssignOp> {
@@ -963,18 +1074,7 @@ impl<'src, 'arena> Parser<'src, 'arena> {
                 let arg = self.alloc(arg);
                 Ok(Expr::Spread(SpreadExpr { argument: arg, span }))
             }
-            TokenKind::KwNew => {
-                self.advance();
-                let callee = self.parse_member_expr()?;
-                let (args, end) = if self.peek().kind == TokenKind::LParen {
-                    self.parse_arguments()?
-                } else {
-                    (&[] as &[&Expr], callee.span())
-                };
-                let span = start.merge(end);
-                let callee = self.alloc(callee);
-                Ok(Expr::New(NewExpr { callee, args, span }))
-            }
+
             _ => self.parse_postfix_expr(),
         }
     }
@@ -988,21 +1088,35 @@ impl<'src, 'arena> Parser<'src, 'arena> {
             match self.peek().kind {
                 TokenKind::Dot => {
                     self.advance();
-                    let prop_tok = self.expect(TokenKind::Ident)?;
-                    let span = expr.span().merge(prop_tok.span);
-                    let object = self.alloc(expr);
-                    expr = Expr::Member(MemberExpr {
-                        object, property: prop_tok.value, span,
-                    });
+                    let prop_tok = self.advance();
+                    if prop_tok.kind == TokenKind::Ident || format!("{:?}", prop_tok.kind).starts_with("Kw") {
+                        let span = expr.span().merge(prop_tok.span);
+                        let object = self.alloc(expr);
+                        expr = Expr::Member(MemberExpr {
+                            object, property: prop_tok.value, span,
+                        });
+                    } else {
+                        return Err(TsnatError::Parse {
+                            message: format!("Expected identifier, found {:?}", prop_tok.kind),
+                            span: prop_tok.span,
+                        });
+                    }
                 }
                 TokenKind::QuestionDot => {
                     self.advance();
-                    let prop_tok = self.expect(TokenKind::Ident)?;
-                    let span = expr.span().merge(prop_tok.span);
-                    let object = self.alloc(expr);
-                    expr = Expr::OptChain(OptChainExpr {
-                        object, property: prop_tok.value, span,
-                    });
+                    let prop_tok = self.advance();
+                    if prop_tok.kind == TokenKind::Ident || format!("{:?}", prop_tok.kind).starts_with("Kw") {
+                        let span = expr.span().merge(prop_tok.span);
+                        let object = self.alloc(expr);
+                        expr = Expr::OptChain(OptChainExpr {
+                            object, property: prop_tok.value, span,
+                        });
+                    } else {
+                        return Err(TsnatError::Parse {
+                            message: format!("Expected identifier, found {:?}", prop_tok.kind),
+                            span: prop_tok.span,
+                        });
+                    }
                 }
                 TokenKind::LBracket => {
                     self.advance();
@@ -1050,12 +1164,19 @@ impl<'src, 'arena> Parser<'src, 'arena> {
             match self.peek().kind {
                 TokenKind::Dot => {
                     self.advance();
-                    let prop = self.expect(TokenKind::Ident)?;
-                    let span = expr.span().merge(prop.span);
-                    let object = self.alloc(expr);
-                    expr = Expr::Member(MemberExpr {
-                        object, property: prop.value, span,
-                    });
+                    let prop = self.advance();
+                    if prop.kind == TokenKind::Ident || format!("{:?}", prop.kind).starts_with("Kw") {
+                        let span = expr.span().merge(prop.span);
+                        let object = self.alloc(expr);
+                        expr = Expr::Member(MemberExpr {
+                            object, property: prop.value, span,
+                        });
+                    } else {
+                        return Err(TsnatError::Parse {
+                            message: format!("Expected identifier, found {:?}", prop.kind),
+                            span: prop.span,
+                        });
+                    }
                 }
                 TokenKind::LBracket => {
                     self.advance();
@@ -1095,6 +1216,18 @@ impl<'src, 'arena> Parser<'src, 'arena> {
             TokenKind::String => {
                 let tok = self.advance();
                 Ok(Expr::String(tok.value, tok.span))
+            }
+            TokenKind::KwNew => {
+                let start = self.advance().span;
+                let callee = self.parse_member_expr()?;
+                let (args, end) = if self.peek().kind == TokenKind::LParen {
+                    self.parse_arguments()?
+                } else {
+                    (&[] as &[&Expr], callee.span())
+                };
+                let span = start.merge(end);
+                let callee = self.alloc(callee);
+                Ok(Expr::New(NewExpr { callee, args, span }))
             }
             TokenKind::KwTrue => {
                 let span = self.advance().span;

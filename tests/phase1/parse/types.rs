@@ -1,6 +1,7 @@
 /// Parser tests — TypeScript type annotations.
 /// ALGO: See SPECS.md §4 FR-PAR-006
 
+#[path = "../../common/mod.rs"]
 mod common;
 use common::*;
 

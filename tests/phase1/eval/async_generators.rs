@@ -1,6 +1,7 @@
 /// Evaluator tests — async/await, Promises, generators.
 /// ALGO: See SPECS.md §7 FR-EVAL-004, FR-EVAL-005
 
+#[path = "../../common/mod.rs"]
 mod common;
 use common::*;
 

@@ -5,7 +5,7 @@
 /// changes, only this file needs updating — not every individual test.
 
 use tsnat_eval::{Interpreter, Value};
-use tsnat_parse::{TsnatError, TsnatResult};
+use tsnat_common::diagnostic::{TsnatError, TsnatResult};
 
 // ── Interpreter helpers ──────────────────────────────────────────────────────
 
@@ -80,8 +80,10 @@ pub fn expect_undefined(src: &str) {
 
 // ── Lexer helpers ────────────────────────────────────────────────────────────
 
-use tsnat_lex::{Lexer, Token, TokenKind};
-use tsnat_parse::{Interner, SourceMap};
+use tsnat_lex::lexer::Lexer;
+use tsnat_lex::token::{Token, TokenKind};
+use tsnat_common::interner::Interner;
+use tsnat_common::span::SourceMap;
 
 pub fn lex(src: &str) -> Vec<Token> {
     let mut sm = SourceMap::new();
@@ -97,7 +99,8 @@ pub fn lex_kinds(src: &str) -> Vec<TokenKind> {
 
 // ── Parser helpers ───────────────────────────────────────────────────────────
 
-use tsnat_parse::{Parser, Program};
+use tsnat_parse::parser::Parser;
+use tsnat_parse::ast::Program;
 use bumpalo::Bump;
 
 pub fn parse(src: &str) -> (Program<'_>, Vec<TsnatError>) {
@@ -110,8 +113,18 @@ pub fn parse(src: &str) -> (Program<'_>, Vec<TsnatError>) {
         .tokenise_all()
         .unwrap();
     let mut parser = Parser::new(&tokens, arena, &mut interner);
-    let program = parser.parse_program();
-    let errors = parser.take_errors();
+    let program = match parser.parse_program() {
+        Ok(p) => p,
+        Err(e) => {
+            let p = Program { 
+                stmts: &[],
+                span: tsnat_common::span::Span::DUMMY,
+                source_type: tsnat_parse::ast::SourceType::Script,
+            };
+            return (p, vec![e]);
+        }
+    };
+    let errors = vec![];
     (program, errors)
 }
 

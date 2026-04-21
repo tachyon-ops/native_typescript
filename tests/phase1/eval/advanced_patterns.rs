@@ -2,6 +2,7 @@
 /// computed properties, Proxy/Reflect, tagged templates, WeakRef.
 /// ALGO: See SPECS.md §7 FR-EVAL-001, FR-EVAL-003
 
+#[path = "../../common/mod.rs"]
 mod common;
 use common::*;
 

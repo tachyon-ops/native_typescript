@@ -53,11 +53,14 @@ impl<'a, 'src> Evaluator<'a, 'src> {
         let console_sym = interner.intern("console");
         global_env.borrow_mut().define(console_sym, Value::Object(console));
 
-        Self {
+        global_env.borrow_mut().define(interner.intern("NaN"), Value::Number(f64::NAN));
+        global_env.borrow_mut().define(interner.intern("Infinity"), Value::Number(f64::INFINITY));
+        
+        Evaluator {
             env: global_env,
             interner,
             ffi_loader,
-            click_handlers: Rc::new(RefCell::new(IndexMap::new())),
+            click_handlers: Rc::new(RefCell::new(IndexMap::default())),
             source: None,
             arena,
         }
@@ -134,6 +137,54 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                 }
                 Ok(ControlFlow::Normal(last_val))
             }
+            Stmt::For(for_stmt) => {
+                let previous_env = self.env.clone();
+                self.env = Rc::new(RefCell::new(Environment::new(Some(previous_env.clone()))));
+                
+                if let Some(init) = &for_stmt.init {
+                    match init {
+                        tsnat_parse::ast::ForInit::Var(var_decl) => {
+                            for v in var_decl.decls.iter() {
+                                let val = if let Some(init) = v.init {
+                                    self.eval_expr(init)?
+                                } else {
+                                    Value::Undefined
+                                };
+                                self.env.borrow_mut().define(v.name, val);
+                            }
+                        }
+                        tsnat_parse::ast::ForInit::Expr(expr) => {
+                            self.eval_expr(*expr)?;
+                        }
+                    }
+                }
+                
+                let mut last_val = Value::Undefined;
+                loop {
+                    if let Some(test) = for_stmt.test {
+                        if !self.eval_expr(test)?.is_truthy() {
+                            break;
+                        }
+                    }
+                    
+                    match self.exec_stmt(for_stmt.body)? {
+                        ControlFlow::Normal(val) => last_val = val,
+                        ControlFlow::Return(val) => {
+                            self.env = previous_env;
+                            return Ok(ControlFlow::Return(val));
+                        }
+                        ControlFlow::Break => break,
+                        ControlFlow::Continue => {}
+                    }
+                    
+                    if let Some(update) = for_stmt.update {
+                        self.eval_expr(update)?;
+                    }
+                }
+                
+                self.env = previous_env;
+                Ok(ControlFlow::Normal(last_val))
+            }
             Stmt::Return(ret) => {
                 let val = if let Some(arg) = ret.value {
                     self.eval_expr(arg)?
@@ -143,14 +194,22 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                 Ok(ControlFlow::Return(val))
             }
             Stmt::Function(decl) => {
-                let name = decl.id.expect("Function must have a name in declaration");
+                let func_name = self.interner.get(decl.id.unwrap()).to_string();
+                let func_name_sym = decl.id.unwrap();
+                let mut props = IndexMap::default();
+                let proto_obj = Value::Object(Rc::new(RefCell::new(crate::value::JsObject {
+                    properties: IndexMap::default(),
+                    prototype: None,
+                })));
+                props.insert(self.interner.intern("prototype"), proto_obj);
                 let func = Rc::new(JsFunction {
-                    name: Some(name),
+                    name: decl.id,
                     params: decl.params,
-                    body: decl.body.map(|b| b.stmts).unwrap_or(&[]),
+                    body: crate::value::FuncBody::Stmts(decl.body.map(|b| b.stmts).unwrap_or(&[])),
                     closure: self.env.clone(),
+                    properties: RefCell::new(props),
                 });
-                self.env.borrow_mut().define(name, Value::Function(func));
+                self.env.borrow_mut().define(func_name_sym, Value::Function(func));
                 Ok(ControlFlow::Normal(Value::Undefined))
             }
             Stmt::NativeImport(i) => {
@@ -292,6 +351,13 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                     span: Some(*span),
                 })
             }
+            Expr::This(span) => {
+                let sym = self.interner.intern("this");
+                self.env.borrow().get(sym).ok_or_else(|| TsnatError::Runtime {
+                    message: "this is undefined".into(),
+                    span: Some(*span),
+                })
+            }
             Expr::Binary(binary) => {
                 if binary.op == tsnat_parse::ast::BinaryOp::And {
                     let left = self.eval_expr(binary.left)?;
@@ -308,11 +374,84 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                 self.eval_binary_op(left, binary.op, right, binary.span)
             }
             Expr::Unary(unary) => {
-                let val = self.eval_expr(unary.operand)?;
-                self.eval_unary_op(unary.op, val, unary.span)
+                use tsnat_parse::ast::UnaryOp::*;
+                if matches!(unary.op, PreInc | PreDec | PostInc | PostDec) {
+                    let old_val = self.eval_expr(unary.operand)?;
+                    let old_num = match old_val {
+                        Value::Number(n) => n,
+                        _ => return Err(TsnatError::Runtime { message: "Invalid operand for increment/decrement".into(), span: Some(unary.span) }),
+                    };
+                    
+                    let new_num = match unary.op {
+                        PreInc | PostInc => old_num + 1.0,
+                        PreDec | PostDec => old_num - 1.0,
+                        _ => unreachable!(),
+                    };
+                    let new_val = Value::Number(new_num);
+                    
+                    match unary.operand {
+                        Expr::Ident(sym, span) => {
+                            if !self.env.borrow_mut().assign(*sym, new_val.clone()) {
+                                return Err(TsnatError::Runtime {
+                                    message: format!("ReferenceError: {} is not defined", self.interner.get(*sym)),
+                                    span: Some(*span),
+                                });
+                            }
+                        }
+                        Expr::Member(member) => {
+                            let obj = self.eval_expr(member.object)?;
+                            let key = member.property;
+                            match obj {
+                                Value::Object(obj_rc) => { obj_rc.borrow_mut().properties.insert(key, new_val.clone()); }
+                                Value::Function(func) => { func.properties.borrow_mut().insert(key, new_val.clone()); }
+                                _ => return Err(TsnatError::Runtime { message: "Cannot assign property on non-object".into(), span: Some(unary.span) }),
+                            }
+                        }
+                        Expr::Index(index) => {
+                            let obj = self.eval_expr(index.object)?;
+                            let key_val = self.eval_expr(index.index)?;
+                            let key = match key_val {
+                                Value::String(s) => self.interner.intern(&s),
+                                Value::Number(n) => self.interner.intern(&n.to_string()),
+                                _ => return Err(TsnatError::Runtime { message: "Invalid index type".into(), span: Some(unary.span) }),
+                            };
+                            match obj {
+                                Value::Object(obj_rc) => { obj_rc.borrow_mut().properties.insert(key, new_val.clone()); }
+                                Value::Function(func) => { func.properties.borrow_mut().insert(key, new_val.clone()); }
+                                _ => return Err(TsnatError::Runtime { message: "Cannot assign property on non-object".into(), span: Some(unary.span) }),
+                            }
+                        }
+                        _ => return Err(TsnatError::Runtime { message: "Invalid left-hand side".into(), span: Some(unary.span) }),
+                    }
+                    
+                    match unary.op {
+                        PreInc | PreDec => Ok(new_val),
+                        PostInc | PostDec => Ok(Value::Number(old_num)),
+                        _ => unreachable!(),
+                    }
+                } else {
+                    let val = self.eval_expr(unary.operand)?;
+                    self.eval_unary_op(unary.op, val, unary.span)
+                }
             }
             Expr::Assign(assign) => {
-                let val = self.eval_expr(assign.right)?;
+                let right_val = self.eval_expr(assign.right)?;
+                
+                let val = if assign.op != tsnat_parse::ast::AssignOp::Eq {
+                    let left_val = self.eval_expr(assign.left)?;
+                    let bin_op = match assign.op {
+                        tsnat_parse::ast::AssignOp::AddEq => tsnat_parse::ast::BinaryOp::Add,
+                        tsnat_parse::ast::AssignOp::SubEq => tsnat_parse::ast::BinaryOp::Sub,
+                        tsnat_parse::ast::AssignOp::MulEq => tsnat_parse::ast::BinaryOp::Mul,
+                        tsnat_parse::ast::AssignOp::DivEq => tsnat_parse::ast::BinaryOp::Div,
+                        tsnat_parse::ast::AssignOp::ModEq => tsnat_parse::ast::BinaryOp::Mod,
+                        _ => return Err(TsnatError::Runtime { message: "Unimplemented compound assignment operator".into(), span: Some(assign.span) }),
+                    };
+                    self.eval_binary_op(left_val, bin_op, right_val, assign.span)?
+                } else {
+                    right_val
+                };
+                
                 match assign.left {
                     Expr::Ident(sym, span) => {
                         if self.env.borrow_mut().assign(*sym, val.clone()) {
@@ -330,6 +469,10 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                         match obj {
                             Value::Object(obj_rc) => {
                                 obj_rc.borrow_mut().properties.insert(key, val.clone());
+                                Ok(val)
+                            }
+                            Value::Function(func) => {
+                                func.properties.borrow_mut().insert(key, val.clone());
                                 Ok(val)
                             }
                             _ => Err(TsnatError::Runtime {
@@ -354,6 +497,10 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                                 obj_rc.borrow_mut().properties.insert(key, val.clone());
                                 Ok(val)
                             }
+                            Value::Function(func) => {
+                                func.properties.borrow_mut().insert(key, val.clone());
+                                Ok(val)
+                            }
                             _ => Err(TsnatError::Runtime {
                                 message: "Cannot assign property on non-object".into(),
                                 span: Some(assign.span),
@@ -365,6 +512,31 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                         span: Some(assign.span),
                     }),
                 }
+            }
+            Expr::New(new_expr) => {
+                let callee = self.eval_expr(new_expr.callee)?;
+                
+                let prototype = match &callee {
+                    Value::Function(func) => {
+                        if let Some(Value::Object(proto)) = func.properties.borrow().get(&self.interner.intern("prototype")) {
+                            Some(proto.clone())
+                        } else { None }
+                    }
+                    _ => None,
+                };
+                
+                let obj = Value::Object(Rc::new(RefCell::new(crate::value::JsObject {
+                    properties: IndexMap::default(),
+                    prototype,
+                })));
+                
+                let mut args = Vec::new();
+                for arg in new_expr.args.iter() {
+                    args.push(self.eval_expr(arg)?);
+                }
+                
+                self.call_function(callee, args, Some(obj.clone()), new_expr.span)?;
+                Ok(obj)
             }
             Expr::Call(call) => {
                 if let Expr::Ident(sym, _) = call.callee {
@@ -379,36 +551,118 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                         return Ok(Value::Undefined);
                     }
                 }
-                let callee = self.eval_expr(call.callee)?;
+                let (callee, this_val) = match call.callee {
+                    Expr::Member(member) => {
+                        let obj = self.eval_expr(member.object)?;
+                        let callee = self.get_property(obj.clone(), member.property, member.span)?;
+                        (callee, Some(obj))
+                    }
+                    Expr::Index(index) => {
+                        let obj = self.eval_expr(index.object)?;
+                        let key_val = self.eval_expr(index.index)?;
+                        let key = match key_val {
+                            Value::String(s) => self.interner.intern(&s),
+                            Value::Number(n) => self.interner.intern(&n.to_string()),
+                            _ => return Err(TsnatError::Runtime {
+                                message: "Invalid index type".into(),
+                                span: Some(index.span),
+                            }),
+                        };
+                        let callee = self.get_property(obj.clone(), key, index.span)?;
+                        (callee, Some(obj))
+                    }
+                    _ => (self.eval_expr(call.callee)?, None),
+                };
                 let mut args = Vec::new();
                 for arg in call.args.iter() {
                     args.push(self.eval_expr(arg)?);
                 }
-                self.call_function(callee, args, call.span)
+                self.call_function(callee, args, this_val, call.span)
             }
             Expr::Function(decl) => {
+                let mut props = IndexMap::default();
+                let proto_obj = Value::Object(Rc::new(RefCell::new(crate::value::JsObject {
+                    properties: IndexMap::default(),
+                    prototype: None,
+                })));
+                props.insert(self.interner.intern("prototype"), proto_obj);
                 let func = Rc::new(JsFunction {
                     name: decl.id,
                     params: decl.params,
-                    body: decl.body.map(|b| b.stmts).unwrap_or(&[]),
+                    body: crate::value::FuncBody::Stmts(decl.body.map(|b| b.stmts).unwrap_or(&[])),
                     closure: self.env.clone(),
+                    properties: RefCell::new(props),
                 });
                 Ok(Value::Function(func))
             }
             Expr::Arrow(arrow) => {
+                let mut props = IndexMap::default();
+                let proto_obj = Value::Object(Rc::new(RefCell::new(crate::value::JsObject {
+                    properties: IndexMap::default(),
+                    prototype: None,
+                })));
+                props.insert(self.interner.intern("prototype"), proto_obj);
                 let func = Rc::new(JsFunction {
                     name: None,
                     params: arrow.params,
                     body: match arrow.body {
-                        ArrowBody::Block(ref b) => b.stmts,
-                        ArrowBody::Expr(_) => return Err(TsnatError::Runtime {
-                            message: "Arrow expression body unimplemented".into(),
-                            span: Some(expr.span()),
-                        }),
+                        ArrowBody::Block(ref b) => crate::value::FuncBody::Stmts(b.stmts),
+                        ArrowBody::Expr(e) => crate::value::FuncBody::Expr(e),
                     },
                     closure: self.env.clone(),
+                    properties: RefCell::new(props),
                 });
                 Ok(Value::Function(func))
+            }
+            Expr::Array(arr) => {
+                let mut properties = IndexMap::default();
+                let mut length = 0;
+                for el in arr.elements.iter() {
+                    if let Expr::Spread(spread) = el {
+                        let val = self.eval_expr(spread.argument)?;
+                        if let Value::Object(obj) = val {
+                            let props = obj.borrow().properties.clone();
+                            let len_val = props.get(&self.interner.intern("length")).cloned().unwrap_or(Value::Undefined);
+                            if let Value::Number(len) = len_val {
+                                let len = len as usize;
+                                for i in 0..len {
+                                    let key = self.interner.intern(&i.to_string());
+                                    let el_val = props.get(&key).cloned().unwrap_or(Value::Undefined);
+                                    let new_key = self.interner.intern(&length.to_string());
+                                    properties.insert(new_key, el_val);
+                                    length += 1;
+                                }
+                            }
+                        }
+                    } else {
+                        let key = self.interner.intern(&length.to_string());
+                        let val = self.eval_expr(el)?;
+                        properties.insert(key, val);
+                        length += 1;
+                    }
+                }
+                let len_key = self.interner.intern("length");
+                properties.insert(len_key, Value::Number(length as f64));
+                
+                let array_sym = self.interner.intern("Array");
+                let prototype = match self.env.borrow().get(array_sym) {
+                    Some(Value::Object(arr_obj)) => {
+                        if let Some(Value::Object(proto)) = arr_obj.borrow().properties.get(&self.interner.intern("prototype")) {
+                            Some(proto.clone())
+                        } else { None }
+                    }
+                    Some(Value::Function(func)) => {
+                        if let Some(Value::Object(proto)) = func.properties.borrow().get(&self.interner.intern("prototype")) {
+                            Some(proto.clone())
+                        } else { None }
+                    }
+                    _ => None,
+                };
+                
+                Ok(Value::Object(Rc::new(RefCell::new(JsObject {
+                    properties,
+                    prototype,
+                }))))
             }
             Expr::Object(obj) => {
                 let mut properties = IndexMap::default();
@@ -447,7 +701,7 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                 })?;
                 
                 let create_elem_sym = self.interner.intern("createElement");
-                let create_elem = self.get_property(react_val, create_elem_sym, jsx.span)?;
+                let create_elem = self.get_property(react_val.clone(), create_elem_sym, jsx.span)?;
                 
                 let tag_str = self.interner.get(jsx.tag).to_string();
                 let tag_val = Value::String(Rc::from(tag_str));
@@ -489,7 +743,7 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                 })));
                 
                 let args = vec![tag_val, props_val, children_val];
-                self.call_function(create_elem, args, jsx.span)
+                self.call_function(create_elem, args, Some(react_val), jsx.span)
             }
             Expr::JSXText(_, span) => {
                 if let Some(src) = &self.source {
@@ -500,6 +754,25 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                 }
             }
             Expr::JSXExpressionContainer(inner, _) => self.eval_expr(inner),
+            Expr::As(as_expr) => self.eval_expr(as_expr.expr),
+            Expr::Template(template) => {
+                let mut res = String::new();
+                for (i, quasi) in template.quasis.iter().enumerate() {
+                    res.push_str(self.interner.get(*quasi));
+                    if i < template.exprs.len() {
+                        let val = self.eval_expr(template.exprs[i])?;
+                        match val {
+                            Value::String(s) => res.push_str(&s),
+                            Value::Number(n) => res.push_str(&n.to_string()),
+                            Value::Bool(b) => res.push_str(&b.to_string()),
+                            Value::Null => res.push_str("null"),
+                            Value::Undefined => res.push_str("undefined"),
+                            _ => res.push_str("[object Object]"),
+                        }
+                    }
+                }
+                Ok(Value::String(Rc::from(res)))
+            }
             _ => Err(TsnatError::Runtime {
                 message: format!("Unimplemented expression type: {:?}", expr),
                 span: Some(expr.span()),
@@ -514,10 +787,17 @@ impl<'a, 'src> Evaluator<'a, 'src> {
             (Value::Number(l), Sub, Value::Number(r)) => Ok(Value::Number(l - r)),
             (Value::Number(l), Mul, Value::Number(r)) => Ok(Value::Number(l * r)),
             (Value::Number(l), Div, Value::Number(r)) => Ok(Value::Number(l / r)),
+            (Value::Number(l), Mod, Value::Number(r)) => Ok(Value::Number(l % r)),
             (Value::Number(l), Lt, Value::Number(r)) => Ok(Value::Bool(l < r)),
             (Value::Number(l), Gt, Value::Number(r)) => Ok(Value::Bool(l > r)),
+            (Value::Number(l), LtEq, Value::Number(r)) => Ok(Value::Bool(l <= r)),
+            (Value::Number(l), GtEq, Value::Number(r)) => Ok(Value::Bool(l >= r)),
             (Value::Number(l), EqEqEq, Value::Number(r)) => Ok(Value::Bool(l == r)),
             (Value::Number(l), BangEqEq, Value::Number(r)) => Ok(Value::Bool(l != r)),
+            (Value::String(l), Lt, Value::String(r)) => Ok(Value::Bool(l < r)),
+            (Value::String(l), Gt, Value::String(r)) => Ok(Value::Bool(l > r)),
+            (Value::String(l), LtEq, Value::String(r)) => Ok(Value::Bool(l <= r)),
+            (Value::String(l), GtEq, Value::String(r)) => Ok(Value::Bool(l >= r)),
             (Value::String(l), EqEqEq, Value::String(r)) => Ok(Value::Bool(l == r)),
             (Value::String(l), BangEqEq, Value::String(r)) => Ok(Value::Bool(l != r)),
             (Value::Undefined, EqEqEq, Value::Undefined) => Ok(Value::Bool(true)),
@@ -526,6 +806,14 @@ impl<'a, 'src> Evaluator<'a, 'src> {
             (l, EqEqEq, Value::Null) => Ok(Value::Bool(matches!(l, Value::Null))),
             (l, BangEqEq, Value::Undefined) => Ok(Value::Bool(!matches!(l, Value::Undefined))),
             (l, BangEqEq, Value::Null) => Ok(Value::Bool(!matches!(l, Value::Null))),
+            (Value::Function(l), EqEqEq, Value::Function(r)) => Ok(Value::Bool(Rc::ptr_eq(&l, &r))),
+            (Value::NativeFunction(l), EqEqEq, Value::NativeFunction(r)) => Ok(Value::Bool(Rc::ptr_eq(&l, &r))),
+            (Value::Function(_), EqEqEq, Value::NativeFunction(_)) => Ok(Value::Bool(false)),
+            (Value::NativeFunction(_), EqEqEq, Value::Function(_)) => Ok(Value::Bool(false)),
+            (Value::Function(l), BangEqEq, Value::Function(r)) => Ok(Value::Bool(!Rc::ptr_eq(&l, &r))),
+            (Value::NativeFunction(l), BangEqEq, Value::NativeFunction(r)) => Ok(Value::Bool(!Rc::ptr_eq(&l, &r))),
+            (Value::Function(_), BangEqEq, Value::NativeFunction(_)) => Ok(Value::Bool(true)),
+            (Value::NativeFunction(_), BangEqEq, Value::Function(_)) => Ok(Value::Bool(true)),
             (Value::String(l), Add, Value::String(r)) => Ok(Value::String(Rc::from(format!("{}{}", l, r)))),
             (Value::String(l), Add, r) => {
                 let r_str = match r {
@@ -556,32 +844,75 @@ impl<'a, 'src> Evaluator<'a, 'src> {
         }
     }
 
-    pub fn call_function(&mut self, callee: Value<'a>, args: Vec<Value<'a>>, span: Span) -> TsnatResult<Value<'a>> {
+    pub fn call_function(&mut self, callee: Value<'a>, args: Vec<Value<'a>>, this_val: Option<Value<'a>>, span: Span) -> TsnatResult<Value<'a>> {
         match callee {
             Value::Function(func) => {
                 let previous_env = self.env.clone();
                 let call_env = Rc::new(RefCell::new(Environment::new(Some(func.closure.clone()))));
                 
+                if let Some(tv) = this_val {
+                    call_env.borrow_mut().define(self.interner.intern("this"), tv);
+                }
+
                 for (i, param) in func.params.iter().enumerate() {
-                    let val = args.get(i).cloned().unwrap_or(Value::Undefined);
-                    call_env.borrow_mut().define(param.name, val);
+                    if param.is_rest {
+                        let mut properties = IndexMap::default();
+                        let mut length = 0;
+                        for arg_val in args.iter().skip(i) {
+                            let key = self.interner.intern(&length.to_string());
+                            properties.insert(key, arg_val.clone());
+                            length += 1;
+                        }
+                        properties.insert(self.interner.intern("length"), Value::Number(length as f64));
+                        
+                        let array_sym = self.interner.intern("Array");
+                        let prototype = match self.env.borrow().get(array_sym) {
+                            Some(Value::Object(arr_obj)) => {
+                                if let Some(Value::Object(proto)) = arr_obj.borrow().properties.get(&self.interner.intern("prototype")) {
+                                    Some(proto.clone())
+                                } else { None }
+                            }
+                            Some(Value::Function(func_obj)) => {
+                                if let Some(Value::Object(proto)) = func_obj.properties.borrow().get(&self.interner.intern("prototype")) {
+                                    Some(proto.clone())
+                                } else { None }
+                            }
+                            _ => None,
+                        };
+                        
+                        let rest_array = Value::Object(Rc::new(RefCell::new(crate::value::JsObject {
+                            properties,
+                            prototype,
+                        })));
+                        call_env.borrow_mut().define(param.name, rest_array);
+                    } else {
+                        let val = args.get(i).cloned().unwrap_or(Value::Undefined);
+                        call_env.borrow_mut().define(param.name, val);
+                    }
                 }
                 
                 self.env = call_env;
                 let mut result = Value::Undefined;
-                for stmt in func.body.iter() {
-                    match self.exec_stmt(stmt)? {
-                        ControlFlow::Normal(val) => result = val,
-                        ControlFlow::Return(val) => {
-                            result = val;
-                            break;
+                match func.body {
+                    crate::value::FuncBody::Stmts(stmts) => {
+                        for stmt in stmts.iter() {
+                            match self.exec_stmt(stmt)? {
+                                ControlFlow::Normal(val) => result = val,
+                                ControlFlow::Return(val) => {
+                                    result = val;
+                                    break;
+                                }
+                                ControlFlow::Break | ControlFlow::Continue => {
+                                    return Err(TsnatError::Runtime {
+                                        message: "Illegal break/continue in function".into(),
+                                        span: Some(span),
+                                    });
+                                }
+                            }
                         }
-                        ControlFlow::Break | ControlFlow::Continue => {
-                            return Err(TsnatError::Runtime {
-                                message: "Illegal break/continue in function".into(),
-                                span: Some(stmt.span()),
-                            });
-                        }
+                    }
+                    crate::value::FuncBody::Expr(expr) => {
+                        result = self.eval_expr(expr)?;
                     }
                 }
                 
@@ -605,6 +936,26 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                     Ok(val.clone())
                 } else if let Some(proto) = &o.borrow().prototype {
                     self.get_property(Value::Object(proto.clone()), key, span)
+                } else {
+                    Ok(Value::Undefined)
+                }
+            }
+            Value::Function(func) => {
+                if let Some(val) = func.properties.borrow().get(&key) {
+                    Ok(val.clone())
+                } else {
+                    Ok(Value::Undefined)
+                }
+            }
+            Value::String(ref s) => {
+                if self.interner.get(key) == "length" {
+                    Ok(Value::Number(s.chars().count() as f64))
+                } else if let Ok(idx) = self.interner.get(key).parse::<usize>() {
+                    if let Some(c) = s.chars().nth(idx) {
+                        Ok(Value::String(Rc::from(c.to_string())))
+                    } else {
+                        Ok(Value::Undefined)
+                    }
                 } else {
                     Ok(Value::Undefined)
                 }

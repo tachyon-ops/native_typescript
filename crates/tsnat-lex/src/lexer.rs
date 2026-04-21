@@ -194,11 +194,7 @@ impl<'src> Lexer<'src> {
         }
         let text = &self.source[start as usize .. self.pos as usize];
         let kind = self.keyword_kind(text);
-        let sym = if matches!(kind, TokenKind::Ident) {
-            self.interner.intern(text)
-        } else {
-            SYM_EMPTY
-        };
+        let sym = self.interner.intern(text);
         Ok(self.make_token(kind, start, self.pos, sym, has_preceding_newline))
     }
 

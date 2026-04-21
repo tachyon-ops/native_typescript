@@ -182,7 +182,7 @@ fn main() -> Result<(), String> {
         for click_id in clicked_widgets {
             let func_opt = eval.click_handlers.borrow().get(&click_id).cloned();
             if let Some(func) = func_opt {
-                if let Err(e) = eval.call_function(func, vec![], tsnat_common::span::Span::DUMMY) {
+                if let Err(e) = eval.call_function(func, vec![], None, tsnat_common::span::Span::DUMMY) {
                     println!("Native Dispatch Error: {:?}", e);
                 }
             }

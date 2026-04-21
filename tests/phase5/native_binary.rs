@@ -3,6 +3,7 @@
 /// Compiles a TypeScript program to a native binary and executes it.
 /// ALGO: See SPECS.md §10 FR-CG-001 through FR-CG-004
 
+#[path = "../common/mod.rs"]
 mod common;
 
 use std::path::PathBuf;

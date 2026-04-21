@@ -1,6 +1,7 @@
 /// Evaluator tests — Map, Set, WeakMap, WeakSet, JSON, Date, RegExp, Error.
 /// ALGO: See SPECS.md §7 FR-EVAL-003
 
+#[path = "../../../common/mod.rs"]
 mod common;
 use common::*;
 

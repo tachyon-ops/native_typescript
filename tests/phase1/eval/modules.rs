@@ -1,6 +1,7 @@
 /// Evaluator tests — ESM module system: import, export, dynamic import.
 /// ALGO: See SPECS.md §7 FR-EVAL-006
 
+#[path = "../../common/mod.rs"]
 mod common;
 use common::*;
 
@@ -9,7 +10,7 @@ use tempfile::TempDir;
 
 /// Write test module files to a temp directory and run them.
 /// Returns the last expression value of `main.ts`.
-fn eval_modules(files: &[(&str, &str)], entry: &str) -> tsnat_eval::Value {
+fn eval_modules<'a>(files: &'a [(&'a str, &'a str)], entry: &'a str) -> tsnat_eval::Value<'static> {
     let dir = TempDir::new().unwrap();
     for (name, content) in files {
         fs::write(dir.path().join(name), content).unwrap();

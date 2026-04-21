@@ -1,6 +1,7 @@
 /// Evaluator tests — destructuring, spread, objects, symbols.
 /// ALGO: See SPECS.md §7 FR-EVAL-001
 
+#[path = "../../common/mod.rs"]
 mod common;
 use common::*;
 

@@ -1,6 +1,7 @@
 /// Evaluator tests — classes, inheritance, getters/setters, private fields.
 /// ALGO: See SPECS.md §7 FR-EVAL-001, FR-EVAL-005
 
+#[path = "../../common/mod.rs"]
 mod common;
 use common::*;
 

@@ -1,9 +1,10 @@
 /// Lexer tests — numeric and string literals.
 /// ALGO: See SPECS.md §3 FR-LEX-001, FR-LEX-005, FR-LEX-006
 
+#[path = "../../common/mod.rs"]
 mod common;
 use common::*;
-use tsnat_lex::TokenKind::*;
+use tsnat_lex::token::TokenKind::*;
 
 // ── Numeric literals ──────────────────────────────────────────────────────────
 
@@ -62,19 +63,19 @@ fn test_lex_numeric_separator_invalid_leading() {
 #[test]
 fn test_lex_numeric_separator_invalid_double() {
     // 1__0 should produce a lex error
-    let mut sm = tsnat_parse::SourceMap::new();
+    let mut sm = tsnat_common::span::SourceMap::new();
     let id = sm.add_file("t.ts".into(), "1__0".to_string());
-    let mut interner = tsnat_parse::Interner::new();
-    let result = tsnat_lex::Lexer::new("1__0", id, &mut interner).tokenise_all();
+    let mut interner = tsnat_common::interner::Interner::new();
+    let result = tsnat_lex::lexer::Lexer::new("1__0", id, &mut interner).tokenise_all();
     assert!(result.is_err(), "expected lex error on double numeric separator");
 }
 
 #[test]
 fn test_lex_float_bigint_invalid() {
-    let mut sm = tsnat_parse::SourceMap::new();
+    let mut sm = tsnat_common::span::SourceMap::new();
     let id = sm.add_file("t.ts".into(), "3.14n".to_string());
-    let mut interner = tsnat_parse::Interner::new();
-    let result = tsnat_lex::Lexer::new("3.14n", id, &mut interner).tokenise_all();
+    let mut interner = tsnat_common::interner::Interner::new();
+    let result = tsnat_lex::lexer::Lexer::new("3.14n", id, &mut interner).tokenise_all();
     assert!(result.is_err(), "expected lex error on float bigint");
 }
 

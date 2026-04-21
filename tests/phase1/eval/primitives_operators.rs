@@ -1,6 +1,7 @@
 /// Evaluator tests — primitives, operators, variables.
 /// ALGO: See SPECS.md §7 FR-EVAL-001 through FR-EVAL-003
 
+#[path = "../../common/mod.rs"]
 mod common;
 use common::*;
 

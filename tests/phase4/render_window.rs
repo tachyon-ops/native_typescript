@@ -4,6 +4,7 @@
 /// Requires SDL3 to be installed on the test machine.
 /// ALGO: See SPECS.md §9 FR-REACT-001 through FR-REACT-008
 
+#[path = "../common/mod.rs"]
 mod common;
 use common::*;
 

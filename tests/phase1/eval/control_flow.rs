@@ -1,6 +1,7 @@
 /// Evaluator tests — control flow: if, loops, switch, try/catch, break/continue.
 /// ALGO: See SPECS.md §7 FR-EVAL-001
 
+#[path = "../../common/mod.rs"]
 mod common;
 use common::*;
 

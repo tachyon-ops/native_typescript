@@ -1,6 +1,7 @@
 /// Parser tests — expression parsing and operator precedence.
 /// ALGO: See SPECS.md §4 FR-PAR-001, FR-PAR-005, FR-PAR-008
 
+#[path = "../../common/mod.rs"]
 mod common;
 use common::*;
 

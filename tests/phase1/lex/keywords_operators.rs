@@ -1,9 +1,10 @@
 /// Lexer tests — keywords, operators, punctuation, ASI flag.
 /// ALGO: See SPECS.md §3 FR-LEX-001, FR-LEX-003
 
+#[path = "../../common/mod.rs"]
 mod common;
 use common::*;
-use tsnat_lex::TokenKind::*;
+use tsnat_lex::token::TokenKind::*;
 
 // ── Value keywords ────────────────────────────────────────────────────────────
 

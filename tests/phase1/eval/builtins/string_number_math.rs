@@ -1,6 +1,7 @@
 /// Evaluator tests — String, Number, Math built-in methods.
 /// ALGO: See SPECS.md §7 FR-EVAL-003
 
+#[path = "../../../common/mod.rs"]
 mod common;
 use common::*;
 
@@ -118,7 +119,7 @@ fn test_eval_string_replace_all() {
 
 #[test]
 fn test_eval_string_replace_regex() {
-    expect_string(r#""hello 42 world 7".replace(/\d+/g, "#")"#, "hello # world #");
+    expect_string(r##""hello 42 world 7".replace(/\d+/g, "#")"##, "hello # world #");
 }
 
 #[test]

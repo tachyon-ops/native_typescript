@@ -30,11 +30,25 @@ impl<'a> Interpreter<'a> {
         }
     }
 
-    pub fn eval_str(&mut self, _src: &str) -> TsnatResult<Value<'a>> {
-        Ok(Value::Undefined)
+    pub fn eval_str(&mut self, src: &str) -> TsnatResult<Value<'a>> {
+        // Extend arena lifetime to 'a for testing purposes, matching parse().
+        let arena: &'a bumpalo::Bump = unsafe { std::mem::transmute(&self.arena) };
+        let builtins = include_str!("builtins/array.ts");
+        let combined = format!("{}\n{}", builtins, src);
+        let mut lexer = tsnat_lex::lexer::Lexer::new(&combined, 0, &mut self.interner);
+        let tokens = lexer.tokenise_all()?;
+        let mut parser = tsnat_parse::parser::Parser::new(&tokens, arena, &mut self.interner);
+        let ast = parser.parse_program()?;
+        let ast_ref = arena.alloc(ast);
+        let mut evaluator = crate::eval::Evaluator::new(&mut self.interner, arena);
+        evaluator.eval_program(ast_ref)
     }
 
-    pub fn eval_file(&mut self, _path: &Path) -> TsnatResult<Value<'a>> {
-        Ok(Value::Undefined)
+    pub fn eval_file(&mut self, path: &Path) -> TsnatResult<Value<'a>> {
+        let src = std::fs::read_to_string(path).map_err(|e| tsnat_common::diagnostic::TsnatError::Runtime {
+            message: format!("Failed to read file: {}", e),
+            span: None,
+        })?;
+        self.eval_str(&src)
     }
 }

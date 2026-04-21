@@ -5,6 +5,7 @@
 ///
 /// ALGO: See SPECS.md §7 (Interpreter), §3 (Lexer), §4 (Parser)
 
+#[path = "../common/mod.rs"]
 mod common;
 use common::*;
 
