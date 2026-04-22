@@ -194,7 +194,7 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                 Ok(ControlFlow::Return(val))
             }
             Stmt::Function(decl) => {
-                let func_name = self.interner.get(decl.id.unwrap()).to_string();
+                let _func_name = self.interner.get(decl.id.unwrap()).to_string();
                 let func_name_sym = decl.id.unwrap();
                 let mut props = IndexMap::default();
                 let proto_obj = Value::Object(Rc::new(RefCell::new(crate::value::JsObject {

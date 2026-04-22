@@ -5,7 +5,7 @@ pub mod eval;
 use tsnat_common::diagnostic::TsnatResult;
 use tsnat_common::interner::Interner;
 use tsnat_parse::ast::Program;
-use tsnat_parse::arena::NodeList;
+
 use std::path::Path;
 use crate::eval::Evaluator;
 pub use crate::value::{Value, JsObject, JsFunction};

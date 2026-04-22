@@ -1499,6 +1499,7 @@ impl<'src, 'arena> Parser<'src, 'arena> {
 
     // ── Arrow tail ────────────────────────────────────────────
 
+    #[allow(dead_code)]
     fn parse_arrow_tail(&mut self, params_expr: Expr<'arena>) -> TsnatResult<Expr<'arena>> {
         let start = params_expr.span();
         self.expect(TokenKind::Arrow)?;
@@ -1518,6 +1519,7 @@ impl<'src, 'arena> Parser<'src, 'arena> {
         }))
     }
 
+    #[allow(dead_code)]
     fn expr_to_arrow_params(&self, expr: &Expr<'arena>) -> TsnatResult<Vec<Param<'arena>>> {
         match expr {
             Expr::Ident(sym, span) => Ok(vec![Param { name: *sym, span: *span, ty: None, init: None, is_rest: false }]),
