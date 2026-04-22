@@ -1,0 +1,1534 @@
+warning: typescript_native v0.1.0 (/home/nri/dev/typescript_native) ignoring invalid dependency `tsnat-cli` which is missing a lib target
+   Compiling tsnat-parse v0.1.0 (/home/nri/dev/typescript_native/crates/tsnat-parse)
+   Compiling tsnat-types v0.1.0 (/home/nri/dev/typescript_native/crates/tsnat-types)
+   Compiling tsnat-eval v0.1.0 (/home/nri/dev/typescript_native/crates/tsnat-eval)
+   Compiling tsnat-react v0.1.0 (/home/nri/dev/typescript_native/crates/tsnat-react)
+   Compiling typescript_native v0.1.0 (/home/nri/dev/typescript_native)
+warning: unused import: `TsnatResult`
+ --> tests/phase1/lex/../../common/mod.rs:8:44
+  |
+8 | use tsnat_common::diagnostic::{TsnatError, TsnatResult};
+  |                                            ^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `TsnatResult`
+ --> tests/phase1/eval/../../common/mod.rs:8:44
+  |
+8 | use tsnat_common::diagnostic::{TsnatError, TsnatResult};
+  |                                            ^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `TsnatResult`
+ --> tests/phase1/parse/../../common/mod.rs:8:44
+  |
+8 | use tsnat_common::diagnostic::{TsnatError, TsnatResult};
+  |                                            ^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `TsnatResult`
+ --> tests/phase5/../common/mod.rs:8:44
+  |
+8 | use tsnat_common::diagnostic::{TsnatError, TsnatResult};
+  |                                            ^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unexpected `cfg` condition value: `real_window`
+   --> tests/phase4/render_window.rs:325:7
+    |
+325 | #[cfg(feature = "real_window")]
+    |       ^^^^^^^^^^^^^^^^^^^^^^^ help: remove the condition
+    |
+    = note: no expected values for `feature`
+    = help: consider adding `real_window` as a feature in `Cargo.toml`
+    = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+    = note: `#[warn(unexpected_cfgs)]` on by default
+
+warning: unused import: `TsnatResult`
+ --> tests/phase4/../common/mod.rs:8:44
+  |
+8 | use tsnat_common::diagnostic::{TsnatError, TsnatResult};
+  |                                            ^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `common::*`
+ --> tests/phase4/render_window.rs:9:5
+  |
+9 | use common::*;
+  |     ^^^^^^^^^
+
+warning: unused import: `TsnatResult`
+ --> tests/phase2/../common/mod.rs:8:44
+  |
+8 | use tsnat_common::diagnostic::{TsnatError, TsnatResult};
+  |                                            ^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `TsnatResult`
+ --> tests/phase1/eval/builtins/../../../common/mod.rs:8:44
+  |
+8 | use tsnat_common::diagnostic::{TsnatError, TsnatResult};
+  |                                            ^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `TsnatResult`
+ --> tests/phase3/../common/mod.rs:8:44
+  |
+8 | use tsnat_common::diagnostic::{TsnatError, TsnatResult};
+  |                                            ^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `eval` is never used
+  --> tests/phase5/../common/mod.rs:13:8
+   |
+13 | pub fn eval(src: &str) -> Value {
+   |        ^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `expect_runtime_error` is never used
+  --> tests/phase5/../common/mod.rs:19:8
+   |
+19 | pub fn expect_runtime_error(src: &str) -> TsnatError {
+   |        ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `eval` is never used
+  --> tests/phase1/lex/../../common/mod.rs:13:8
+   |
+13 | pub fn eval(src: &str) -> Value {
+   |        ^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `expect_display` is never used
+  --> tests/phase5/../common/mod.rs:27:8
+   |
+27 | pub fn expect_display(src: &str, expected: &str) {
+   |        ^^^^^^^^^^^^^^
+
+warning: function `expect_runtime_error` is never used
+  --> tests/phase1/lex/../../common/mod.rs:19:8
+   |
+19 | pub fn expect_runtime_error(src: &str) -> TsnatError {
+   |        ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `expect_display` is never used
+  --> tests/phase1/lex/../../common/mod.rs:27:8
+   |
+27 | pub fn expect_display(src: &str, expected: &str) {
+   |        ^^^^^^^^^^^^^^
+
+warning: function `expect_number` is never used
+  --> tests/phase5/../common/mod.rs:37:8
+   |
+37 | pub fn expect_number(src: &str, expected: f64) {
+   |        ^^^^^^^^^^^^^
+
+warning: function `expect_number` is never used
+  --> tests/phase1/lex/../../common/mod.rs:37:8
+   |
+37 | pub fn expect_number(src: &str, expected: f64) {
+   |        ^^^^^^^^^^^^^
+
+warning: function `expect_string` is never used
+  --> tests/phase5/../common/mod.rs:50:8
+   |
+50 | pub fn expect_string(src: &str, expected: &str) {
+   |        ^^^^^^^^^^^^^
+
+warning: function `expect_bool` is never used
+  --> tests/phase5/../common/mod.rs:58:8
+   |
+58 | pub fn expect_bool(src: &str, expected: bool) {
+   |        ^^^^^^^^^^^
+
+warning: function `expect_string` is never used
+  --> tests/phase1/lex/../../common/mod.rs:50:8
+   |
+50 | pub fn expect_string(src: &str, expected: &str) {
+   |        ^^^^^^^^^^^^^
+
+warning: function `expect_bool` is never used
+  --> tests/phase1/lex/../../common/mod.rs:58:8
+   |
+58 | pub fn expect_bool(src: &str, expected: bool) {
+   |        ^^^^^^^^^^^
+
+warning: function `expect_null` is never used
+  --> tests/phase1/lex/../../common/mod.rs:66:8
+   |
+66 | pub fn expect_null(src: &str) {
+   |        ^^^^^^^^^^^
+
+warning: function `expect_null` is never used
+  --> tests/phase5/../common/mod.rs:66:8
+   |
+66 | pub fn expect_null(src: &str) {
+   |        ^^^^^^^^^^^
+
+warning: function `expect_undefined` is never used
+  --> tests/phase1/lex/../../common/mod.rs:74:8
+   |
+74 | pub fn expect_undefined(src: &str) {
+   |        ^^^^^^^^^^^^^^^^
+
+warning: function `parse` is never used
+   --> tests/phase1/lex/../../common/mod.rs:106:8
+    |
+106 | pub fn parse(src: &str) -> (Program<'_>, Vec<TsnatError>) {
+    |        ^^^^^
+
+warning: function `expect_parse_ok` is never used
+   --> tests/phase1/lex/../../common/mod.rs:131:8
+    |
+131 | pub fn expect_parse_ok(src: &str) {
+    |        ^^^^^^^^^^^^^^^
+
+warning: function `expect_parse_error` is never used
+   --> tests/phase1/lex/../../common/mod.rs:141:8
+    |
+141 | pub fn expect_parse_error(src: &str) {
+    |        ^^^^^^^^^^^^^^^^^^
+
+warning: function `type_check` is never used
+   --> tests/phase1/lex/../../common/mod.rs:153:8
+    |
+153 | pub fn type_check(src: &str) -> Vec<Diagnostic> {
+    |        ^^^^^^^^^^
+
+warning: function `expect_type_ok` is never used
+   --> tests/phase1/lex/../../common/mod.rs:160:8
+    |
+160 | pub fn expect_type_ok(src: &str) {
+    |        ^^^^^^^^^^^^^^
+
+warning: function `expect_type_error` is never used
+   --> tests/phase1/lex/../../common/mod.rs:170:8
+    |
+170 | pub fn expect_type_error(src: &str, code: DiagnosticCode) {
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: function `expect_type_error_count` is never used
+   --> tests/phase1/lex/../../common/mod.rs:178:8
+    |
+178 | pub fn expect_type_error_count(src: &str, count: usize) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+  --> tests/phase1/lex/../../common/mod.rs:13:18
+   |
+13 | pub fn eval(src: &str) -> Value {
+   |                  ^^^^     ^^^^^ the same lifetime is hidden here
+   |                  |
+   |                  the lifetime is elided here
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: use `'_` for type paths
+   |
+13 | pub fn eval(src: &str) -> Value<'_> {
+   |                                ++++
+
+warning: function `expect_runtime_error` is never used
+  --> tests/phase1/eval/../../common/mod.rs:19:8
+   |
+19 | pub fn expect_runtime_error(src: &str) -> TsnatError {
+   |        ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `expect_undefined` is never used
+  --> tests/phase5/../common/mod.rs:74:8
+   |
+74 | pub fn expect_undefined(src: &str) {
+   |        ^^^^^^^^^^^^^^^^
+
+warning: function `lex` is never used
+  --> tests/phase5/../common/mod.rs:88:8
+   |
+88 | pub fn lex(src: &str) -> Vec<Token> {
+   |        ^^^
+
+warning: function `lex_kinds` is never used
+  --> tests/phase5/../common/mod.rs:96:8
+   |
+96 | pub fn lex_kinds(src: &str) -> Vec<TokenKind> {
+   |        ^^^^^^^^^
+
+warning: function `parse` is never used
+   --> tests/phase5/../common/mod.rs:106:8
+    |
+106 | pub fn parse(src: &str) -> (Program<'_>, Vec<TsnatError>) {
+    |        ^^^^^
+
+warning: function `expect_parse_ok` is never used
+   --> tests/phase5/../common/mod.rs:131:8
+    |
+131 | pub fn expect_parse_ok(src: &str) {
+    |        ^^^^^^^^^^^^^^^
+
+warning: function `expect_parse_error` is never used
+   --> tests/phase5/../common/mod.rs:141:8
+    |
+141 | pub fn expect_parse_error(src: &str) {
+    |        ^^^^^^^^^^^^^^^^^^
+
+warning: function `expect_display` is never used
+  --> tests/phase1/eval/../../common/mod.rs:27:8
+   |
+27 | pub fn expect_display(src: &str, expected: &str) {
+   |        ^^^^^^^^^^^^^^
+
+warning: function `type_check` is never used
+   --> tests/phase5/../common/mod.rs:153:8
+    |
+153 | pub fn type_check(src: &str) -> Vec<Diagnostic> {
+    |        ^^^^^^^^^^
+
+warning: function `expect_type_ok` is never used
+   --> tests/phase5/../common/mod.rs:160:8
+    |
+160 | pub fn expect_type_ok(src: &str) {
+    |        ^^^^^^^^^^^^^^
+
+warning: function `expect_type_error` is never used
+   --> tests/phase5/../common/mod.rs:170:8
+    |
+170 | pub fn expect_type_error(src: &str, code: DiagnosticCode) {
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: function `expect_type_error_count` is never used
+   --> tests/phase5/../common/mod.rs:178:8
+    |
+178 | pub fn expect_type_error_count(src: &str, count: usize) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+  --> tests/phase5/../common/mod.rs:13:18
+   |
+13 | pub fn eval(src: &str) -> Value {
+   |                  ^^^^     ^^^^^ the same lifetime is hidden here
+   |                  |
+   |                  the lifetime is elided here
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: use `'_` for type paths
+   |
+13 | pub fn eval(src: &str) -> Value<'_> {
+   |                                ++++
+
+warning: function `expect_null` is never used
+  --> tests/phase1/eval/../../common/mod.rs:66:8
+   |
+66 | pub fn expect_null(src: &str) {
+   |        ^^^^^^^^^^^
+
+warning: function `expect_undefined` is never used
+  --> tests/phase1/eval/../../common/mod.rs:74:8
+   |
+74 | pub fn expect_undefined(src: &str) {
+   |        ^^^^^^^^^^^^^^^^
+
+warning: function `lex` is never used
+  --> tests/phase1/eval/../../common/mod.rs:88:8
+   |
+88 | pub fn lex(src: &str) -> Vec<Token> {
+   |        ^^^
+
+warning: function `lex_kinds` is never used
+  --> tests/phase1/eval/../../common/mod.rs:96:8
+   |
+96 | pub fn lex_kinds(src: &str) -> Vec<TokenKind> {
+   |        ^^^^^^^^^
+
+warning: function `parse` is never used
+   --> tests/phase1/eval/../../common/mod.rs:106:8
+    |
+106 | pub fn parse(src: &str) -> (Program<'_>, Vec<TsnatError>) {
+    |        ^^^^^
+
+warning: function `expect_parse_ok` is never used
+   --> tests/phase1/eval/../../common/mod.rs:131:8
+    |
+131 | pub fn expect_parse_ok(src: &str) {
+    |        ^^^^^^^^^^^^^^^
+
+warning: function `expect_parse_error` is never used
+   --> tests/phase1/eval/../../common/mod.rs:141:8
+    |
+141 | pub fn expect_parse_error(src: &str) {
+    |        ^^^^^^^^^^^^^^^^^^
+
+warning: function `type_check` is never used
+   --> tests/phase1/eval/../../common/mod.rs:153:8
+    |
+153 | pub fn type_check(src: &str) -> Vec<Diagnostic> {
+    |        ^^^^^^^^^^
+
+warning: function `expect_type_ok` is never used
+   --> tests/phase1/eval/../../common/mod.rs:160:8
+    |
+160 | pub fn expect_type_ok(src: &str) {
+    |        ^^^^^^^^^^^^^^
+
+warning: function `expect_type_error` is never used
+   --> tests/phase1/eval/../../common/mod.rs:170:8
+    |
+170 | pub fn expect_type_error(src: &str, code: DiagnosticCode) {
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: function `expect_type_error_count` is never used
+   --> tests/phase1/eval/../../common/mod.rs:178:8
+    |
+178 | pub fn expect_type_error_count(src: &str, count: usize) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+  --> tests/phase1/eval/../../common/mod.rs:13:18
+   |
+13 | pub fn eval(src: &str) -> Value {
+   |                  ^^^^     ^^^^^ the same lifetime is hidden here
+   |                  |
+   |                  the lifetime is elided here
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: use `'_` for type paths
+   |
+13 | pub fn eval(src: &str) -> Value<'_> {
+   |                                ++++
+
+warning: function `expect_display` is never used
+  --> tests/phase1/eval/../../common/mod.rs:27:8
+   |
+27 | pub fn expect_display(src: &str, expected: &str) {
+   |        ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `src`
+  --> tests/phase1/eval/modules.rs:19:9
+   |
+19 |     let src = fs::read_to_string(&main_path).unwrap();
+   |         ^^^ help: if this is intentional, prefix it with an underscore: `_src`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `eval` is never used
+  --> tests/phase4/../common/mod.rs:13:8
+   |
+13 | pub fn eval(src: &str) -> Value {
+   |        ^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `expect_runtime_error` is never used
+  --> tests/phase4/../common/mod.rs:19:8
+   |
+19 | pub fn expect_runtime_error(src: &str) -> TsnatError {
+   |        ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `expect_display` is never used
+  --> tests/phase4/../common/mod.rs:27:8
+   |
+27 | pub fn expect_display(src: &str, expected: &str) {
+   |        ^^^^^^^^^^^^^^
+
+warning: function `expect_number` is never used
+  --> tests/phase4/../common/mod.rs:37:8
+   |
+37 | pub fn expect_number(src: &str, expected: f64) {
+   |        ^^^^^^^^^^^^^
+
+warning: function `expect_string` is never used
+  --> tests/phase4/../common/mod.rs:50:8
+   |
+50 | pub fn expect_string(src: &str, expected: &str) {
+   |        ^^^^^^^^^^^^^
+
+warning: unused variable: `flag_str`
+   --> tests/phase1/eval/modules.rs:186:9
+    |
+186 |     let flag_str = flag_path.to_string_lossy().to_string();
+    |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_flag_str`
+
+warning: unused variable: `setup_src`
+   --> tests/phase1/eval/modules.rs:188:9
+    |
+188 |     let setup_src = format!(
+    |         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_setup_src`
+
+warning: function `expect_bool` is never used
+  --> tests/phase4/../common/mod.rs:58:8
+   |
+58 | pub fn expect_bool(src: &str, expected: bool) {
+   |        ^^^^^^^^^^^
+
+warning: function `expect_null` is never used
+  --> tests/phase4/../common/mod.rs:66:8
+   |
+66 | pub fn expect_null(src: &str) {
+   |        ^^^^^^^^^^^
+
+warning: function `expect_undefined` is never used
+  --> tests/phase4/../common/mod.rs:74:8
+   |
+74 | pub fn expect_undefined(src: &str) {
+   |        ^^^^^^^^^^^^^^^^
+
+warning: function `lex` is never used
+  --> tests/phase4/../common/mod.rs:88:8
+   |
+88 | pub fn lex(src: &str) -> Vec<Token> {
+   |        ^^^
+
+warning: function `lex_kinds` is never used
+  --> tests/phase4/../common/mod.rs:96:8
+   |
+96 | pub fn lex_kinds(src: &str) -> Vec<TokenKind> {
+   |        ^^^^^^^^^
+
+warning: function `parse` is never used
+   --> tests/phase4/../common/mod.rs:106:8
+    |
+106 | pub fn parse(src: &str) -> (Program<'_>, Vec<TsnatError>) {
+    |        ^^^^^
+
+warning: function `expect_parse_ok` is never used
+   --> tests/phase4/../common/mod.rs:131:8
+    |
+131 | pub fn expect_parse_ok(src: &str) {
+    |        ^^^^^^^^^^^^^^^
+
+warning: function `expect_parse_error` is never used
+   --> tests/phase4/../common/mod.rs:141:8
+    |
+141 | pub fn expect_parse_error(src: &str) {
+    |        ^^^^^^^^^^^^^^^^^^
+
+warning: function `type_check` is never used
+   --> tests/phase4/../common/mod.rs:153:8
+    |
+153 | pub fn type_check(src: &str) -> Vec<Diagnostic> {
+    |        ^^^^^^^^^^
+
+warning: function `expect_type_ok` is never used
+   --> tests/phase4/../common/mod.rs:160:8
+    |
+160 | pub fn expect_type_ok(src: &str) {
+    |        ^^^^^^^^^^^^^^
+
+warning: function `expect_type_error` is never used
+   --> tests/phase4/../common/mod.rs:170:8
+    |
+170 | pub fn expect_type_error(src: &str, code: DiagnosticCode) {
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: function `expect_type_error_count` is never used
+   --> tests/phase4/../common/mod.rs:178:8
+    |
+178 | pub fn expect_type_error_count(src: &str, count: usize) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+  --> tests/phase4/../common/mod.rs:13:18
+   |
+13 | pub fn eval(src: &str) -> Value {
+   |                  ^^^^     ^^^^^ the same lifetime is hidden here
+   |                  |
+   |                  the lifetime is elided here
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: use `'_` for type paths
+   |
+13 | pub fn eval(src: &str) -> Value<'_> {
+   |                                ++++
+
+warning: function `eval` is never used
+  --> tests/phase1/eval/../../common/mod.rs:13:8
+   |
+13 | pub fn eval(src: &str) -> Value {
+   |        ^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `expect_runtime_error` is never used
+  --> tests/phase1/eval/../../common/mod.rs:19:8
+   |
+19 | pub fn expect_runtime_error(src: &str) -> TsnatError {
+   |        ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `expect_number` is never used
+  --> tests/phase1/eval/../../common/mod.rs:37:8
+   |
+37 | pub fn expect_number(src: &str, expected: f64) {
+   |        ^^^^^^^^^^^^^
+
+warning: function `expect_string` is never used
+  --> tests/phase1/eval/../../common/mod.rs:50:8
+   |
+50 | pub fn expect_string(src: &str, expected: &str) {
+   |        ^^^^^^^^^^^^^
+
+warning: function `expect_bool` is never used
+  --> tests/phase1/eval/../../common/mod.rs:58:8
+   |
+58 | pub fn expect_bool(src: &str, expected: bool) {
+   |        ^^^^^^^^^^^
+
+warning: function `expect_runtime_error` is never used
+  --> tests/phase1/eval/builtins/../../../common/mod.rs:19:8
+   |
+19 | pub fn expect_runtime_error(src: &str) -> TsnatError {
+   |        ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `eval` is never used
+  --> tests/phase1/parse/../../common/mod.rs:13:8
+   |
+13 | pub fn eval(src: &str) -> Value {
+   |        ^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `expect_display` is never used
+  --> tests/phase1/eval/builtins/../../../common/mod.rs:27:8
+   |
+27 | pub fn expect_display(src: &str, expected: &str) {
+   |        ^^^^^^^^^^^^^^
+
+warning: function `expect_runtime_error` is never used
+  --> tests/phase1/parse/../../common/mod.rs:19:8
+   |
+19 | pub fn expect_runtime_error(src: &str) -> TsnatError {
+   |        ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `expect_display` is never used
+  --> tests/phase1/parse/../../common/mod.rs:27:8
+   |
+27 | pub fn expect_display(src: &str, expected: &str) {
+   |        ^^^^^^^^^^^^^^
+
+warning: function `expect_number` is never used
+  --> tests/phase1/parse/../../common/mod.rs:37:8
+   |
+37 | pub fn expect_number(src: &str, expected: f64) {
+   |        ^^^^^^^^^^^^^
+
+warning: function `expect_string` is never used
+  --> tests/phase1/parse/../../common/mod.rs:50:8
+   |
+50 | pub fn expect_string(src: &str, expected: &str) {
+   |        ^^^^^^^^^^^^^
+
+warning: function `expect_bool` is never used
+  --> tests/phase1/parse/../../common/mod.rs:58:8
+   |
+58 | pub fn expect_bool(src: &str, expected: bool) {
+   |        ^^^^^^^^^^^
+
+warning: function `expect_null` is never used
+  --> tests/phase1/parse/../../common/mod.rs:66:8
+   |
+66 | pub fn expect_null(src: &str) {
+   |        ^^^^^^^^^^^
+
+warning: function `expect_undefined` is never used
+  --> tests/phase1/parse/../../common/mod.rs:74:8
+   |
+74 | pub fn expect_undefined(src: &str) {
+   |        ^^^^^^^^^^^^^^^^
+
+warning: function `lex` is never used
+  --> tests/phase1/parse/../../common/mod.rs:88:8
+   |
+88 | pub fn lex(src: &str) -> Vec<Token> {
+   |        ^^^
+
+warning: function `expect_null` is never used
+  --> tests/phase1/eval/builtins/../../../common/mod.rs:66:8
+   |
+66 | pub fn expect_null(src: &str) {
+   |        ^^^^^^^^^^^
+
+warning: function `expect_undefined` is never used
+  --> tests/phase1/eval/builtins/../../../common/mod.rs:74:8
+   |
+74 | pub fn expect_undefined(src: &str) {
+   |        ^^^^^^^^^^^^^^^^
+
+warning: function `lex_kinds` is never used
+  --> tests/phase1/parse/../../common/mod.rs:96:8
+   |
+96 | pub fn lex_kinds(src: &str) -> Vec<TokenKind> {
+   |        ^^^^^^^^^
+
+warning: function `lex` is never used
+  --> tests/phase1/eval/builtins/../../../common/mod.rs:88:8
+   |
+88 | pub fn lex(src: &str) -> Vec<Token> {
+   |        ^^^
+
+warning: function `lex_kinds` is never used
+  --> tests/phase1/eval/builtins/../../../common/mod.rs:96:8
+   |
+96 | pub fn lex_kinds(src: &str) -> Vec<TokenKind> {
+   |        ^^^^^^^^^
+
+warning: function `parse` is never used
+   --> tests/phase1/eval/builtins/../../../common/mod.rs:106:8
+    |
+106 | pub fn parse(src: &str) -> (Program<'_>, Vec<TsnatError>) {
+    |        ^^^^^
+
+warning: function `type_check` is never used
+   --> tests/phase1/parse/../../common/mod.rs:153:8
+    |
+153 | pub fn type_check(src: &str) -> Vec<Diagnostic> {
+    |        ^^^^^^^^^^
+
+warning: function `expect_parse_ok` is never used
+   --> tests/phase1/eval/builtins/../../../common/mod.rs:131:8
+    |
+131 | pub fn expect_parse_ok(src: &str) {
+    |        ^^^^^^^^^^^^^^^
+
+warning: function `expect_parse_error` is never used
+   --> tests/phase1/eval/builtins/../../../common/mod.rs:141:8
+    |
+141 | pub fn expect_parse_error(src: &str) {
+    |        ^^^^^^^^^^^^^^^^^^
+
+warning: function `type_check` is never used
+   --> tests/phase1/eval/builtins/../../../common/mod.rs:153:8
+    |
+153 | pub fn type_check(src: &str) -> Vec<Diagnostic> {
+    |        ^^^^^^^^^^
+
+warning: function `expect_type_ok` is never used
+   --> tests/phase1/eval/builtins/../../../common/mod.rs:160:8
+    |
+160 | pub fn expect_type_ok(src: &str) {
+    |        ^^^^^^^^^^^^^^
+
+warning: function `expect_type_ok` is never used
+   --> tests/phase1/parse/../../common/mod.rs:160:8
+    |
+160 | pub fn expect_type_ok(src: &str) {
+    |        ^^^^^^^^^^^^^^
+
+warning: function `expect_type_error` is never used
+   --> tests/phase1/eval/builtins/../../../common/mod.rs:170:8
+    |
+170 | pub fn expect_type_error(src: &str, code: DiagnosticCode) {
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: function `expect_type_error_count` is never used
+   --> tests/phase1/eval/builtins/../../../common/mod.rs:178:8
+    |
+178 | pub fn expect_type_error_count(src: &str, count: usize) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `expect_type_error` is never used
+   --> tests/phase1/parse/../../common/mod.rs:170:8
+    |
+170 | pub fn expect_type_error(src: &str, code: DiagnosticCode) {
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: function `expect_type_error_count` is never used
+   --> tests/phase1/parse/../../common/mod.rs:178:8
+    |
+178 | pub fn expect_type_error_count(src: &str, count: usize) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+  --> tests/phase1/eval/builtins/../../../common/mod.rs:13:18
+   |
+13 | pub fn eval(src: &str) -> Value {
+   |                  ^^^^     ^^^^^ the same lifetime is hidden here
+   |                  |
+   |                  the lifetime is elided here
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: use `'_` for type paths
+   |
+13 | pub fn eval(src: &str) -> Value<'_> {
+   |                                ++++
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+  --> tests/phase1/parse/../../common/mod.rs:13:18
+   |
+13 | pub fn eval(src: &str) -> Value {
+   |                  ^^^^     ^^^^^ the same lifetime is hidden here
+   |                  |
+   |                  the lifetime is elided here
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: use `'_` for type paths
+   |
+13 | pub fn eval(src: &str) -> Value<'_> {
+   |                                ++++
+
+warning: function `expect_parse_error` is never used
+   --> tests/phase1/parse/../../common/mod.rs:141:8
+    |
+141 | pub fn expect_parse_error(src: &str) {
+    |        ^^^^^^^^^^^^^^^^^^
+
+warning: function `eval` is never used
+  --> tests/phase3/../common/mod.rs:13:8
+   |
+13 | pub fn eval(src: &str) -> Value {
+   |        ^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `expect_runtime_error` is never used
+  --> tests/phase3/../common/mod.rs:19:8
+   |
+19 | pub fn expect_runtime_error(src: &str) -> TsnatError {
+   |        ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `expect_display` is never used
+  --> tests/phase3/../common/mod.rs:27:8
+   |
+27 | pub fn expect_display(src: &str, expected: &str) {
+   |        ^^^^^^^^^^^^^^
+
+warning: function `expect_number` is never used
+  --> tests/phase3/../common/mod.rs:37:8
+   |
+37 | pub fn expect_number(src: &str, expected: f64) {
+   |        ^^^^^^^^^^^^^
+
+warning: function `expect_display` is never used
+  --> tests/phase2/../common/mod.rs:27:8
+   |
+27 | pub fn expect_display(src: &str, expected: &str) {
+   |        ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `expect_string` is never used
+  --> tests/phase3/../common/mod.rs:50:8
+   |
+50 | pub fn expect_string(src: &str, expected: &str) {
+   |        ^^^^^^^^^^^^^
+
+warning: function `expect_null` is never used
+  --> tests/phase2/../common/mod.rs:66:8
+   |
+66 | pub fn expect_null(src: &str) {
+   |        ^^^^^^^^^^^
+
+warning: function `expect_undefined` is never used
+  --> tests/phase2/../common/mod.rs:74:8
+   |
+74 | pub fn expect_undefined(src: &str) {
+   |        ^^^^^^^^^^^^^^^^
+
+warning: function `lex` is never used
+  --> tests/phase2/../common/mod.rs:88:8
+   |
+88 | pub fn lex(src: &str) -> Vec<Token> {
+   |        ^^^
+
+warning: function `lex_kinds` is never used
+  --> tests/phase2/../common/mod.rs:96:8
+   |
+96 | pub fn lex_kinds(src: &str) -> Vec<TokenKind> {
+   |        ^^^^^^^^^
+
+warning: function `parse` is never used
+   --> tests/phase2/../common/mod.rs:106:8
+    |
+106 | pub fn parse(src: &str) -> (Program<'_>, Vec<TsnatError>) {
+    |        ^^^^^
+
+warning: function `expect_parse_ok` is never used
+   --> tests/phase2/../common/mod.rs:131:8
+    |
+131 | pub fn expect_parse_ok(src: &str) {
+    |        ^^^^^^^^^^^^^^^
+
+warning: function `expect_parse_error` is never used
+   --> tests/phase2/../common/mod.rs:141:8
+    |
+141 | pub fn expect_parse_error(src: &str) {
+    |        ^^^^^^^^^^^^^^^^^^
+
+warning: function `type_check` is never used
+   --> tests/phase2/../common/mod.rs:153:8
+    |
+153 | pub fn type_check(src: &str) -> Vec<Diagnostic> {
+    |        ^^^^^^^^^^
+
+warning: function `expect_type_ok` is never used
+   --> tests/phase2/../common/mod.rs:160:8
+    |
+160 | pub fn expect_type_ok(src: &str) {
+    |        ^^^^^^^^^^^^^^
+
+warning: function `expect_type_error` is never used
+   --> tests/phase2/../common/mod.rs:170:8
+    |
+170 | pub fn expect_type_error(src: &str, code: DiagnosticCode) {
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: function `expect_type_error_count` is never used
+   --> tests/phase2/../common/mod.rs:178:8
+    |
+178 | pub fn expect_type_error_count(src: &str, count: usize) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+  --> tests/phase2/../common/mod.rs:13:18
+   |
+13 | pub fn eval(src: &str) -> Value {
+   |                  ^^^^     ^^^^^ the same lifetime is hidden here
+   |                  |
+   |                  the lifetime is elided here
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: use `'_` for type paths
+   |
+13 | pub fn eval(src: &str) -> Value<'_> {
+   |                                ++++
+
+warning: function `expect_bool` is never used
+  --> tests/phase3/../common/mod.rs:58:8
+   |
+58 | pub fn expect_bool(src: &str, expected: bool) {
+   |        ^^^^^^^^^^^
+
+warning: function `expect_null` is never used
+  --> tests/phase3/../common/mod.rs:66:8
+   |
+66 | pub fn expect_null(src: &str) {
+   |        ^^^^^^^^^^^
+
+warning: function `expect_undefined` is never used
+  --> tests/phase3/../common/mod.rs:74:8
+   |
+74 | pub fn expect_undefined(src: &str) {
+   |        ^^^^^^^^^^^^^^^^
+
+warning: function `lex` is never used
+  --> tests/phase3/../common/mod.rs:88:8
+   |
+88 | pub fn lex(src: &str) -> Vec<Token> {
+   |        ^^^
+
+warning: function `lex_kinds` is never used
+  --> tests/phase3/../common/mod.rs:96:8
+   |
+96 | pub fn lex_kinds(src: &str) -> Vec<TokenKind> {
+   |        ^^^^^^^^^
+
+warning: function `expect_parse_ok` is never used
+   --> tests/phase3/../common/mod.rs:131:8
+    |
+131 | pub fn expect_parse_ok(src: &str) {
+    |        ^^^^^^^^^^^^^^^
+
+warning: function `expect_parse_error` is never used
+   --> tests/phase3/../common/mod.rs:141:8
+    |
+141 | pub fn expect_parse_error(src: &str) {
+    |        ^^^^^^^^^^^^^^^^^^
+
+warning: function `expect_type_error_count` is never used
+   --> tests/phase3/../common/mod.rs:178:8
+    |
+178 | pub fn expect_type_error_count(src: &str, count: usize) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+  --> tests/phase3/../common/mod.rs:13:18
+   |
+13 | pub fn eval(src: &str) -> Value {
+   |                  ^^^^     ^^^^^ the same lifetime is hidden here
+   |                  |
+   |                  the lifetime is elided here
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: use `'_` for type paths
+   |
+13 | pub fn eval(src: &str) -> Value<'_> {
+   |                                ++++
+
+warning: function `expect_display` is never used
+  --> tests/phase1/eval/builtins/../../../common/mod.rs:27:8
+   |
+27 | pub fn expect_display(src: &str, expected: &str) {
+   |        ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `typescript_native` (test "native_binary") generated 19 warnings (run `cargo fix --test "native_binary" -p typescript_native` to apply 2 suggestions)
+warning: `typescript_native` (test "render_window") generated 21 warnings (run `cargo fix --test "render_window" -p typescript_native` to apply 3 suggestions)
+warning: `typescript_native` (test "eval_modules") generated 20 warnings (12 duplicates) (run `cargo fix --test "eval_modules" -p typescript_native` to apply 3 suggestions)
+warning: `typescript_native` (test "eval_control_flow") generated 14 warnings (14 duplicates)
+warning: `typescript_native` (test "lex_keywords_operators") generated 17 warnings (run `cargo fix --test "lex_keywords_operators" -p typescript_native` to apply 2 suggestions)
+warning: `typescript_native` (test "builtin_collections_json") generated 14 warnings (13 duplicates)
+warning: `typescript_native` (test "eval_async_generators") generated 15 warnings (1 duplicate) (run `cargo fix --test "eval_async_generators" -p typescript_native` to apply 1 suggestion)
+warning: `typescript_native` (test "eval_destructuring_objects") generated 15 warnings (15 duplicates)
+warning: `typescript_native` (test "type_errors") generated 15 warnings (run `cargo fix --test "type_errors" -p typescript_native` to apply 2 suggestions)
+warning: unused import: `TsnatResult`
+ --> tests/phase1/../common/mod.rs:8:44
+  |
+8 | use tsnat_common::diagnostic::{TsnatError, TsnatResult};
+  |                                            ^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: `typescript_native` (test "eval_functions_closures") generated 14 warnings (14 duplicates)
+warning: `typescript_native` (test "builtin_string_number_math") generated 15 warnings (1 duplicate) (run `cargo fix --test "builtin_string_number_math" -p typescript_native` to apply 1 suggestion)
+warning: `typescript_native` (test "eval_primitives_operators") generated 13 warnings (13 duplicates)
+warning: `typescript_native` (test "eval_advanced_patterns") generated 14 warnings (13 duplicates) (run `cargo fix --test "eval_advanced_patterns" -p typescript_native` to apply 1 suggestion)
+warning: `typescript_native` (test "eval_classes") generated 14 warnings (13 duplicates)
+warning: `typescript_native` (test "parse_statements") generated 17 warnings (15 duplicates) (run `cargo fix --test "parse_statements" -p typescript_native` to apply 1 suggestion)
+warning: `typescript_native` (test "parse_types") generated 17 warnings (17 duplicates)
+warning: `typescript_native` (test "parse_expressions") generated 16 warnings (1 duplicate) (run `cargo fix --test "parse_expressions" -p typescript_native` to apply 1 suggestion)
+warning: `typescript_native` (test "builtin_array") generated 15 warnings (14 duplicates) (run `cargo fix --test "builtin_array" -p typescript_native` to apply 1 suggestion)
+warning: function `expect_runtime_error` is never used
+  --> tests/phase1/../common/mod.rs:19:8
+   |
+19 | pub fn expect_runtime_error(src: &str) -> TsnatError {
+   |        ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `expect_display` is never used
+  --> tests/phase1/../common/mod.rs:27:8
+   |
+27 | pub fn expect_display(src: &str, expected: &str) {
+   |        ^^^^^^^^^^^^^^
+
+warning: function `expect_bool` is never used
+  --> tests/phase1/../common/mod.rs:58:8
+   |
+58 | pub fn expect_bool(src: &str, expected: bool) {
+   |        ^^^^^^^^^^^
+
+warning: function `expect_null` is never used
+  --> tests/phase1/../common/mod.rs:66:8
+   |
+66 | pub fn expect_null(src: &str) {
+   |        ^^^^^^^^^^^
+
+warning: function `expect_undefined` is never used
+  --> tests/phase1/../common/mod.rs:74:8
+   |
+74 | pub fn expect_undefined(src: &str) {
+   |        ^^^^^^^^^^^^^^^^
+
+warning: function `lex` is never used
+  --> tests/phase1/../common/mod.rs:88:8
+   |
+88 | pub fn lex(src: &str) -> Vec<Token> {
+   |        ^^^
+
+warning: function `lex_kinds` is never used
+  --> tests/phase1/../common/mod.rs:96:8
+   |
+96 | pub fn lex_kinds(src: &str) -> Vec<TokenKind> {
+   |        ^^^^^^^^^
+
+warning: function `parse` is never used
+   --> tests/phase1/../common/mod.rs:106:8
+    |
+106 | pub fn parse(src: &str) -> (Program<'_>, Vec<TsnatError>) {
+    |        ^^^^^
+
+warning: function `expect_parse_ok` is never used
+   --> tests/phase1/../common/mod.rs:131:8
+    |
+131 | pub fn expect_parse_ok(src: &str) {
+    |        ^^^^^^^^^^^^^^^
+
+warning: function `expect_parse_error` is never used
+   --> tests/phase1/../common/mod.rs:141:8
+    |
+141 | pub fn expect_parse_error(src: &str) {
+    |        ^^^^^^^^^^^^^^^^^^
+
+warning: function `type_check` is never used
+   --> tests/phase1/../common/mod.rs:153:8
+    |
+153 | pub fn type_check(src: &str) -> Vec<Diagnostic> {
+    |        ^^^^^^^^^^
+
+warning: function `expect_type_ok` is never used
+   --> tests/phase1/../common/mod.rs:160:8
+    |
+160 | pub fn expect_type_ok(src: &str) {
+    |        ^^^^^^^^^^^^^^
+
+warning: function `expect_type_error` is never used
+   --> tests/phase1/../common/mod.rs:170:8
+    |
+170 | pub fn expect_type_error(src: &str, code: DiagnosticCode) {
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: function `expect_type_error_count` is never used
+   --> tests/phase1/../common/mod.rs:178:8
+    |
+178 | pub fn expect_type_error_count(src: &str, count: usize) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: hiding a lifetime that's elided elsewhere is confusing
+  --> tests/phase1/../common/mod.rs:13:18
+   |
+13 | pub fn eval(src: &str) -> Value {
+   |                  ^^^^     ^^^^^ the same lifetime is hidden here
+   |                  |
+   |                  the lifetime is elided here
+   |
+   = help: the same lifetime is referred to in inconsistent ways, making the signature confusing
+   = note: `#[warn(mismatched_lifetime_syntaxes)]` on by default
+help: use `'_` for type paths
+   |
+13 | pub fn eval(src: &str) -> Value<'_> {
+   |                                ++++
+
+warning: `typescript_native` (test "ffi_roundtrip") generated 14 warnings (run `cargo fix --test "ffi_roundtrip" -p typescript_native` to apply 2 suggestions)
+warning: `typescript_native` (test "lex_literals") generated 17 warnings (17 duplicates)
+warning: `typescript_native` (test "repl_smoke") generated 16 warnings (run `cargo fix --test "repl_smoke" -p typescript_native` to apply 2 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.50s
+     Running tests/phase1/eval/builtins/array.rs (target/debug/deps/builtin_array-d955a7c08d60ff13)
+
+running 46 tests
+test test_eval_array_fill ... ok
+test test_eval_array_find_last ... ok
+test test_eval_array_at ... ok
+test test_eval_array_entries ... ok
+test test_eval_array_concat ... ok
+test test_eval_array_find_index ... ok
+test test_eval_array_flat_deep ... ok
+test test_eval_array_constructor ... ok
+test test_eval_array_from_map ... ok
+test test_eval_array_flat_map ... ok
+test test_eval_array_from_iterable ... ok
+test test_eval_array_find ... ok
+test test_eval_array_every ... ok
+test test_eval_array_filter ... ok
+test test_eval_array_flat ... ok
+test test_eval_array_for_each ... ok
+test test_eval_array_index_of ... ok
+test test_eval_array_copy_within ... ok
+test test_eval_array_includes ... ok
+test test_eval_array_join ... ok
+test test_eval_array_includes_nan ... ok
+test test_eval_array_join_default ... ok
+test test_eval_array_reduce ... ok
+test test_eval_array_last_index_of ... ok
+test test_eval_array_literal ... ok
+test test_eval_array_map ... ok
+test test_eval_array_push ... ok
+test test_eval_array_of ... ok
+test test_eval_array_pop ... ok
+test test_eval_array_reduce_right ... ok
+test test_eval_array_reverse ... ok
+test test_eval_array_slice ... ok
+test test_eval_array_slice_negative ... ok
+test test_eval_array_keys ... ok
+test test_eval_array_is_array ... ok
+test test_eval_array_some ... ok
+test test_eval_array_sort_strings ... ok
+test test_eval_int32array ... ok
+test test_eval_array_sort_numbers ... ok
+test test_eval_float64array ... ok
+test test_eval_array_shift ... ok
+test test_eval_array_unshift ... ok
+test test_eval_uint8array ... ok
+test test_eval_array_splice_insert ... ok
+test test_eval_array_values ... ok
+test test_eval_array_splice_remove ... ok
+
+test result: ok. 46 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/phase1/eval/builtins/collections_json.rs (target/debug/deps/builtin_collections_json-fdfde73306acba69)
+
+running 44 tests
+test test_eval_json_parse_object ... FAILED
+test test_eval_error_message ... FAILED
+test test_eval_json_parse_invalid_throws ... ok
+test test_eval_json_parse_array ... FAILED
+test test_eval_date_get_time ... FAILED
+test test_eval_json_stringify_nested ... FAILED
+test test_eval_map_clear ... FAILED
+test test_eval_json_stringify_array ... FAILED
+test test_eval_date_now_is_number ... FAILED
+test test_eval_error_stack_is_string ... FAILED
+test test_eval_json_stringify_null ... FAILED
+test test_eval_json_roundtrip ... FAILED
+test test_eval_date_from_timestamp ... FAILED
+test test_eval_error_instanceof ... FAILED
+test test_eval_date_new ... FAILED
+test test_eval_json_stringify_object ... FAILED
+test test_eval_map_delete ... FAILED
+test test_eval_map_has ... FAILED
+test test_eval_map_for_of ... FAILED
+test test_eval_map_iteration_order ... FAILED
+test test_eval_range_error ... FAILED
+test test_eval_map_object_key ... FAILED
+test test_eval_regexp_exec ... FAILED
+test test_eval_regexp_constructor ... FAILED
+test test_eval_map_size ... FAILED
+test test_eval_regexp_test ... FAILED
+test test_eval_regexp_global_match ... FAILED
+test test_eval_set_has ... FAILED
+test test_eval_set_clear ... FAILED
+test test_eval_set_for_each ... FAILED
+test test_eval_type_error ... FAILED
+test test_eval_map_set_get ... FAILED
+test test_eval_map_from_entries ... FAILED
+test test_eval_reference_error_thrown ... ok
+test test_eval_set_delete ... FAILED
+test test_eval_regexp_test_false ... FAILED
+test test_eval_set_iteration ... FAILED
+test test_eval_weakmap_set_get ... FAILED
+test test_eval_weakmap_has ... FAILED
+test test_eval_weakset_delete ... FAILED
+test test_eval_weakmap_delete ... FAILED
+test test_eval_set_add_size ... FAILED
+test test_eval_weakset_add_has ... FAILED
+test test_eval_set_deduplication ... FAILED
+
+failures:
+
+---- test_eval_json_parse_object stdout ----
+
+thread 'test_eval_json_parse_object' (538584) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+JSON.parse('{"x":42}').x: Runtime { message: "ReferenceError: JSON is not defined", span: Some(Span { file_id: 0, start: 10830, end: 10834 }) }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- test_eval_error_message stdout ----
+
+thread 'test_eval_error_message' (538580) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+new Error("oops").message: Runtime { message: "ReferenceError: Error is not defined", span: Some(Span { file_id: 0, start: 10834, end: 10839 }) }
+
+---- test_eval_json_parse_array stdout ----
+
+thread 'test_eval_json_parse_array' (538582) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+JSON.parse('[1,2,3]')[1]: Runtime { message: "ReferenceError: JSON is not defined", span: Some(Span { file_id: 0, start: 10830, end: 10834 }) }
+
+---- test_eval_date_get_time stdout ----
+
+thread 'test_eval_date_get_time' (538576) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+typeof new Date().getTime() === 'number': Runtime { message: "ReferenceError: Date is not defined", span: Some(Span { file_id: 0, start: 10841, end: 10845 }) }
+
+---- test_eval_json_stringify_nested stdout ----
+
+thread 'test_eval_json_stringify_nested' (538587) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+typeof JSON.stringify({ a: { b: [1, 2] } }) === 'string': Runtime { message: "ReferenceError: JSON is not defined", span: Some(Span { file_id: 0, start: 10837, end: 10841 }) }
+
+---- test_eval_map_clear stdout ----
+
+thread 'test_eval_map_clear' (538590) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+const m = new Map([['a', 1], ['b', 2]]); m.clear(); m.size: Runtime { message: "ReferenceError: Map is not defined", span: Some(Span { file_id: 0, start: 10844, end: 10847 }) }
+
+---- test_eval_json_stringify_array stdout ----
+
+thread 'test_eval_json_stringify_array' (538586) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+JSON.stringify([1, 2, 3]): Runtime { message: "ReferenceError: JSON is not defined", span: Some(Span { file_id: 0, start: 10830, end: 10834 }) }
+
+---- test_eval_date_now_is_number stdout ----
+
+thread 'test_eval_date_now_is_number' (538578) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+typeof Date.now() === 'number': Runtime { message: "ReferenceError: Date is not defined", span: Some(Span { file_id: 0, start: 10837, end: 10841 }) }
+
+---- test_eval_error_stack_is_string stdout ----
+
+thread 'test_eval_error_stack_is_string' (538581) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+typeof new Error('x').stack === 'string': Runtime { message: "ReferenceError: Error is not defined", span: Some(Span { file_id: 0, start: 10841, end: 10846 }) }
+
+---- test_eval_json_stringify_null stdout ----
+
+thread 'test_eval_json_stringify_null' (538588) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+JSON.stringify(null): Runtime { message: "ReferenceError: JSON is not defined", span: Some(Span { file_id: 0, start: 10830, end: 10834 }) }
+
+---- test_eval_json_roundtrip stdout ----
+
+thread 'test_eval_json_roundtrip' (538585) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+
+        const obj = { name: 'Alice', scores: [10, 20, 30] };
+        const parsed = JSON.parse(JSON.stringify(obj));
+        parsed.name === obj.name && parsed.scores[2] === 30
+        : Runtime { message: "ReferenceError: JSON is not defined", span: Some(Span { file_id: 0, start: 10915, end: 10919 }) }
+
+---- test_eval_date_from_timestamp stdout ----
+
+thread 'test_eval_date_from_timestamp' (538575) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+new Date(0).getFullYear(): Runtime { message: "ReferenceError: Date is not defined", span: Some(Span { file_id: 0, start: 10834, end: 10838 }) }
+
+---- test_eval_error_instanceof stdout ----
+
+thread 'test_eval_error_instanceof' (538579) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+new Error() instanceof Error: Runtime { message: "ReferenceError: Error is not defined", span: Some(Span { file_id: 0, start: 10834, end: 10839 }) }
+
+---- test_eval_date_new stdout ----
+
+thread 'test_eval_date_new' (538577) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+new Date() instanceof Date: Runtime { message: "ReferenceError: Date is not defined", span: Some(Span { file_id: 0, start: 10834, end: 10838 }) }
+
+---- test_eval_json_stringify_object stdout ----
+
+thread 'test_eval_json_stringify_object' (538589) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+JSON.stringify({ a: 1, b: 2 }): Runtime { message: "ReferenceError: JSON is not defined", span: Some(Span { file_id: 0, start: 10830, end: 10834 }) }
+
+---- test_eval_map_delete stdout ----
+
+thread 'test_eval_map_delete' (538591) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+const m = new Map([['a', 1]]); m.delete('a'); !m.has('a'): Runtime { message: "ReferenceError: Map is not defined", span: Some(Span { file_id: 0, start: 10844, end: 10847 }) }
+
+---- test_eval_map_has stdout ----
+
+thread 'test_eval_map_has' (538594) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+const m = new Map([['a', 1]]); m.has('a') && !m.has('b'): Runtime { message: "ReferenceError: Map is not defined", span: Some(Span { file_id: 0, start: 10844, end: 10847 }) }
+
+---- test_eval_map_for_of stdout ----
+
+thread 'test_eval_map_for_of' (538592) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+
+        const m = new Map([['a', 1], ['b', 2], ['c', 3]]);
+        let s = 0;
+        for (const [, v] of m) s += v;
+        s
+        : Parse { message: "Expected identifier, found [", span: Span { file_id: 0, start: 10928, end: 10929 } }
+
+---- test_eval_map_iteration_order stdout ----
+
+thread 'test_eval_map_iteration_order' (538595) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+const m = new Map([['c', 3], ['a', 1], ['b', 2]]); [...m.keys()].join(','): Runtime { message: "ReferenceError: Map is not defined", span: Some(Span { file_id: 0, start: 10844, end: 10847 }) }
+
+---- test_eval_range_error stdout ----
+
+thread 'test_eval_range_error' (538599) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+new RangeError('range') instanceof RangeError: Runtime { message: "ReferenceError: RangeError is not defined", span: Some(Span { file_id: 0, start: 10834, end: 10844 }) }
+
+---- test_eval_map_object_key stdout ----
+
+thread 'test_eval_map_object_key' (538596) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+
+        const m = new Map<object, number>();
+        const key = {};
+        m.set(key, 42);
+        m.get(key) as number
+        : Parse { message: "Unexpected token: object", span: Span { file_id: 0, start: 10857, end: 10863 } }
+
+---- test_eval_regexp_exec stdout ----
+
+thread 'test_eval_regexp_exec' (538602) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+/(\w+)/.exec("hello world")![1]: Parse { message: "Unexpected token: regex", span: Span { file_id: 0, start: 10830, end: 10837 } }
+
+---- test_eval_regexp_constructor stdout ----
+
+thread 'test_eval_regexp_constructor' (538601) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+new RegExp("^\\d+$").test("123"): Runtime { message: "ReferenceError: RegExp is not defined", span: Some(Span { file_id: 0, start: 10834, end: 10840 }) }
+
+---- test_eval_map_size stdout ----
+
+thread 'test_eval_map_size' (538598) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+new Map([['a', 1], ['b', 2], ['c', 3]]).size: Runtime { message: "ReferenceError: Map is not defined", span: Some(Span { file_id: 0, start: 10834, end: 10837 }) }
+
+---- test_eval_regexp_test stdout ----
+
+thread 'test_eval_regexp_test' (538604) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+/^\d+$/.test("123"): Parse { message: "Unexpected token: regex", span: Span { file_id: 0, start: 10830, end: 10837 } }
+
+---- test_eval_regexp_global_match stdout ----
+
+thread 'test_eval_regexp_global_match' (538603) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+"a1b2c3".match(/\d/g)!.length: Parse { message: "Unexpected token: regex", span: Span { file_id: 0, start: 10845, end: 10850 } }
+
+---- test_eval_set_has stdout ----
+
+thread 'test_eval_set_has' (538611) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+new Set([1, 2, 3]).has(2): Runtime { message: "ReferenceError: Set is not defined", span: Some(Span { file_id: 0, start: 10834, end: 10837 }) }
+
+---- test_eval_set_clear stdout ----
+
+thread 'test_eval_set_clear' (538607) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+const s = new Set([1, 2, 3]); s.clear(); s.size: Runtime { message: "ReferenceError: Set is not defined", span: Some(Span { file_id: 0, start: 10844, end: 10847 }) }
+
+---- test_eval_set_for_each stdout ----
+
+thread 'test_eval_set_for_each' (538610) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+let s = 0; new Set([1, 2, 3]).forEach((v: number) => { s += v; }); s: Runtime { message: "ReferenceError: Set is not defined", span: Some(Span { file_id: 0, start: 10845, end: 10848 }) }
+
+---- test_eval_type_error stdout ----
+
+thread 'test_eval_type_error' (538613) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+new TypeError('type') instanceof TypeError && new TypeError('type') instanceof Error: Runtime { message: "ReferenceError: TypeError is not defined", span: Some(Span { file_id: 0, start: 10834, end: 10843 }) }
+
+---- test_eval_map_set_get stdout ----
+
+thread 'test_eval_map_set_get' (538597) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+const m = new Map<string, number>(); m.set('a', 1); m.get('a') as number: Parse { message: "Unexpected token: string", span: Span { file_id: 0, start: 10848, end: 10854 } }
+
+---- test_eval_map_from_entries stdout ----
+
+thread 'test_eval_map_from_entries' (538593) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+new Map(Object.entries({ a: 1, b: 2 })).get('b') as number: Runtime { message: "ReferenceError: Map is not defined", span: Some(Span { file_id: 0, start: 10834, end: 10837 }) }
+
+---- test_eval_set_delete stdout ----
+
+thread 'test_eval_set_delete' (538609) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+const s = new Set([1, 2, 3]); s.delete(2); !s.has(2): Runtime { message: "ReferenceError: Set is not defined", span: Some(Span { file_id: 0, start: 10844, end: 10847 }) }
+
+---- test_eval_regexp_test_false stdout ----
+
+thread 'test_eval_regexp_test_false' (538605) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+/^\d+$/.test("12a"): Parse { message: "Unexpected token: regex", span: Span { file_id: 0, start: 10830, end: 10837 } }
+
+---- test_eval_set_iteration stdout ----
+
+thread 'test_eval_set_iteration' (538612) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+[...new Set([3, 1, 2])].join(','): Runtime { message: "ReferenceError: Set is not defined", span: Some(Span { file_id: 0, start: 10838, end: 10841 }) }
+
+---- test_eval_weakmap_set_get stdout ----
+
+thread 'test_eval_weakmap_set_get' (538616) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+
+        const wm = new WeakMap<object, number>();
+        const key = {};
+        wm.set(key, 99);
+        wm.get(key) as number
+        : Parse { message: "Unexpected token: object", span: Span { file_id: 0, start: 10862, end: 10868 } }
+
+---- test_eval_weakmap_has stdout ----
+
+thread 'test_eval_weakmap_has' (538615) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+const wm = new WeakMap(); const k = {}; wm.set(k, 1); wm.has(k): Runtime { message: "ReferenceError: WeakMap is not defined", span: Some(Span { file_id: 0, start: 10845, end: 10852 }) }
+
+---- test_eval_weakset_delete stdout ----
+
+thread 'test_eval_weakset_delete' (538618) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+const ws = new WeakSet(); const o = {}; ws.add(o); ws.delete(o); !ws.has(o): Runtime { message: "ReferenceError: WeakSet is not defined", span: Some(Span { file_id: 0, start: 10845, end: 10852 }) }
+
+---- test_eval_weakmap_delete stdout ----
+
+thread 'test_eval_weakmap_delete' (538614) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+const wm = new WeakMap(); const k = {}; wm.set(k, 1); wm.delete(k); !wm.has(k): Runtime { message: "ReferenceError: WeakMap is not defined", span: Some(Span { file_id: 0, start: 10845, end: 10852 }) }
+
+---- test_eval_set_add_size stdout ----
+
+thread 'test_eval_set_add_size' (538606) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+new Set([1, 2, 2, 3, 3, 3]).size: Runtime { message: "ReferenceError: Set is not defined", span: Some(Span { file_id: 0, start: 10834, end: 10837 }) }
+
+---- test_eval_weakset_add_has stdout ----
+
+thread 'test_eval_weakset_add_has' (538617) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+const ws = new WeakSet(); const o = {}; ws.add(o); ws.has(o): Runtime { message: "ReferenceError: WeakSet is not defined", span: Some(Span { file_id: 0, start: 10845, end: 10852 }) }
+
+---- test_eval_set_deduplication stdout ----
+
+thread 'test_eval_set_deduplication' (538608) panicked at tests/phase1/eval/builtins/../../../common/mod.rs:15:26:
+eval failed on:
+[...new Set([1,1,2,2,3,3,3])].length: Runtime { message: "ReferenceError: Set is not defined", span: Some(Span { file_id: 0, start: 10838, end: 10841 }) }
+
+
+failures:
+    test_eval_date_from_timestamp
+    test_eval_date_get_time
+    test_eval_date_new
+    test_eval_date_now_is_number
+    test_eval_error_instanceof
+    test_eval_error_message
+    test_eval_error_stack_is_string
+    test_eval_json_parse_array
+    test_eval_json_parse_object
+    test_eval_json_roundtrip
+    test_eval_json_stringify_array
+    test_eval_json_stringify_nested
+    test_eval_json_stringify_null
+    test_eval_json_stringify_object
+    test_eval_map_clear
+    test_eval_map_delete
+    test_eval_map_for_of
+    test_eval_map_from_entries
+    test_eval_map_has
+    test_eval_map_iteration_order
+    test_eval_map_object_key
+    test_eval_map_set_get
+    test_eval_map_size
+    test_eval_range_error
+    test_eval_regexp_constructor
+    test_eval_regexp_exec
+    test_eval_regexp_global_match
+    test_eval_regexp_test
+    test_eval_regexp_test_false
+    test_eval_set_add_size
+    test_eval_set_clear
+    test_eval_set_deduplication
+    test_eval_set_delete
+    test_eval_set_for_each
+    test_eval_set_has
+    test_eval_set_iteration
+    test_eval_type_error
+    test_eval_weakmap_delete
+    test_eval_weakmap_has
+    test_eval_weakmap_set_get
+    test_eval_weakset_add_has
+    test_eval_weakset_delete
+
+test result: FAILED. 2 passed; 42 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `--test builtin_collections_json`

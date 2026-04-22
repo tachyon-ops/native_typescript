@@ -41,6 +41,7 @@ pub enum Stmt<'a> {
     Export(ExportDecl<'a>),
     NativeImport(NativeImportDecl),
     NativeFunction(NativeFunctionDecl<'a>),
+    Debugger(Span),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -69,6 +70,7 @@ pub enum VarKind {
     Const,
     Let,
     Var,
+    Using,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -80,10 +82,32 @@ pub struct VarDecl<'a> {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct VarDeclarator<'a> {
-    pub name: Symbol,
+    pub pattern: BindingPattern<'a>,
     pub ty: Option<TypeNode<'a>>,
     pub init: Option<&'a Expr<'a>>,
     pub span: Span,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum BindingPattern<'a> {
+    Ident(Symbol),
+    Array(NodeList<'a, BindingElement<'a>>),
+    Object(NodeList<'a, ObjectBindingProp<'a>>),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct BindingElement<'a> {
+    pub pattern: Option<&'a BindingPattern<'a>>,
+    pub default_val: Option<&'a Expr<'a>>,
+    pub is_rest: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ObjectBindingProp<'a> {
+    pub key: Symbol,
+    pub pattern: Option<&'a BindingPattern<'a>>,
+    pub default_val: Option<&'a Expr<'a>>,
+    pub is_rest: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -333,6 +357,19 @@ pub enum Expr<'a> {
     JSXElement(JSXElement<'a>),
     JSXText(Symbol, Span),
     JSXExpressionContainer(&'a Expr<'a>, Span),
+    BigInt(Symbol, Span),
+    Regex(Symbol, Span),
+    Await(&'a Expr<'a>, Span),
+    Yield(Option<&'a Expr<'a>>, bool, Span),
+    NonNull(&'a Expr<'a>, Span),
+    Satisfies(SatisfiesExpr<'a>),
+    Sequence(SequenceExpr<'a>),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct SequenceExpr<'a> {
+    pub exprs: NodeList<'a, &'a Expr<'a>>,
+    pub span: Span,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -409,14 +446,22 @@ pub struct IndexExpr<'a> {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct OptChainExpr<'a> {
-    pub object: &'a Expr<'a>,
-    pub property: Symbol,
+    pub base: &'a Expr<'a>,
+    pub ext: OptChainExt<'a>,
     pub span: Span,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum OptChainExt<'a> {
+    Member(Symbol),
+    Index(&'a Expr<'a>),
+    Call(NodeList<'a, &'a Expr<'a>>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct CallExpr<'a> {
     pub callee: &'a Expr<'a>,
+    pub type_args: Option<NodeList<'a, TypeNode<'a>>>,
     pub args: NodeList<'a, &'a Expr<'a>>,
     pub span: Span,
 }
@@ -424,6 +469,7 @@ pub struct CallExpr<'a> {
 #[derive(Debug, Clone, PartialEq)]
 pub struct NewExpr<'a> {
     pub callee: &'a Expr<'a>,
+    pub type_args: Option<NodeList<'a, TypeNode<'a>>>,
     pub args: NodeList<'a, &'a Expr<'a>>,
     pub span: Span,
 }
@@ -471,11 +517,19 @@ pub struct ObjectExpr<'a> {
 pub struct ObjProp<'a> {
     pub key: Symbol,
     pub value: &'a Expr<'a>,
+    pub is_spread: bool,
     pub span: Span,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct AsExpr<'a> {
+    pub expr: &'a Expr<'a>,
+    pub ty: TypeNode<'a>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct SatisfiesExpr<'a> {
     pub expr: &'a Expr<'a>,
     pub ty: TypeNode<'a>,
     pub span: Span,
@@ -542,7 +596,11 @@ impl<'a> Expr<'a> {
         match self {
             Expr::Number(_, s) | Expr::String(_, s) | Expr::Bool(_, s)
             | Expr::Null(s) | Expr::Undefined(s) | Expr::This(s)
-            | Expr::Ident(_, s) | Expr::Paren(_, s) => *s,
+            | Expr::Ident(_, s) | Expr::Paren(_, s)
+            | Expr::BigInt(_, s) | Expr::Regex(_, s)
+            | Expr::Await(_, s) | Expr::Yield(_, _, s)
+            | Expr::NonNull(_, s) => *s,
+            Expr::Satisfies(e) => e.span,
             Expr::Member(e) => e.span,
             Expr::Index(e) => e.span,
             Expr::OptChain(e) => e.span,
@@ -562,6 +620,7 @@ impl<'a> Expr<'a> {
             Expr::JSXElement(e) => e.span,
             Expr::JSXText(_, s) => *s,
             Expr::JSXExpressionContainer(_, s) => *s,
+            Expr::Sequence(e) => e.span,
         }
     }
 }
@@ -591,6 +650,7 @@ impl<'a> Stmt<'a> {
             Stmt::Export(s) => s.span,
             Stmt::NativeImport(s) => s.span,
             Stmt::NativeFunction(s) => s.span,
+            Stmt::Debugger(s) => *s,
         }
     }
 }

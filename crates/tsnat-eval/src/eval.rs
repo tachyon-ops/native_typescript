@@ -96,7 +96,11 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                     } else {
                         Value::Undefined
                     };
-                    self.env.borrow_mut().define(decl.name, val);
+                    if let tsnat_parse::ast::BindingPattern::Ident(name) = decl.pattern {
+                        self.env.borrow_mut().define(name, val);
+                    } else {
+                        return Err(TsnatError::Runtime { message: "Destructuring not implemented in evaluator yet".into(), span: Some(decl.span) });
+                    }
                 }
                 Ok(ControlFlow::Normal(Value::Undefined))
             }
@@ -150,7 +154,11 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                                 } else {
                                     Value::Undefined
                                 };
-                                self.env.borrow_mut().define(v.name, val);
+                                if let tsnat_parse::ast::BindingPattern::Ident(name) = v.pattern {
+                                    self.env.borrow_mut().define(name, val);
+                                } else {
+                                    return Err(TsnatError::Runtime { message: "Destructuring not implemented in evaluator yet".into(), span: Some(v.span) });
+                                }
                             }
                         }
                         tsnat_parse::ast::ForInit::Expr(expr) => {
@@ -772,6 +780,29 @@ impl<'a, 'src> Evaluator<'a, 'src> {
                     }
                 }
                 Ok(Value::String(Rc::from(res)))
+            }
+            Expr::Sequence(seq) => {
+                let mut last = Value::Undefined;
+                for e in seq.exprs.iter() {
+                    last = self.eval_expr(e)?;
+                }
+                Ok(last)
+            }
+            Expr::OptChain(_) => Err(TsnatError::Runtime { message: "OptChain not implemented".into(), span: Some(expr.span()) }),
+            Expr::BigInt(_, _) => Err(TsnatError::Runtime { message: "BigInt not implemented".into(), span: Some(expr.span()) }),
+            Expr::Regex(_, _) => Err(TsnatError::Runtime { message: "Regex not implemented".into(), span: Some(expr.span()) }),
+            Expr::Await(inner, _) => self.eval_expr(inner), // stub
+            Expr::Yield(_, _, _) => Err(TsnatError::Runtime { message: "Yield not implemented".into(), span: Some(expr.span()) }),
+            Expr::NonNull(inner, _) => self.eval_expr(inner),
+            Expr::Satisfies(satisfies) => self.eval_expr(satisfies.expr),
+            Expr::Spread(_) => Err(TsnatError::Runtime { message: "Spread outside of object/array".into(), span: Some(expr.span()) }),
+            Expr::Conditional(cond) => {
+                let test = self.eval_expr(cond.test)?;
+                if test.is_truthy() {
+                    self.eval_expr(cond.consequent)
+                } else {
+                    self.eval_expr(cond.alternate)
+                }
             }
             _ => Err(TsnatError::Runtime {
                 message: format!("Unimplemented expression type: {:?}", expr),

@@ -325,6 +325,18 @@ impl<'src> Lexer<'src> {
         }
 
         let text = &self.source[start as usize .. self.pos as usize];
+        if text.contains("__") || text.ends_with('_') {
+            return Err(TsnatError::Lex { 
+                message: "Invalid numeric separator".into(), 
+                span: Span { file_id: self.file_id, start, end: self.pos } 
+            });
+        }
+        if is_bigint && (text.contains('.') || text.contains('e') || text.contains('E')) {
+            return Err(TsnatError::Lex { 
+                message: "BigInt literals cannot have a fractional or exponent part".into(), 
+                span: Span { file_id: self.file_id, start, end: self.pos } 
+            });
+        }
         let sym = self.interner.intern(text);
         let kind = if is_bigint { TokenKind::BigInt } else { TokenKind::Number };
         Ok(self.make_token(kind, start, self.pos, sym, has_preceding_newline))

@@ -147,7 +147,9 @@ fn test_lex_nested_template() {
         lex_kinds("`outer${`inner${x}`}end`"),
         vec![
             TemplateHead,
-            NoSubstTemplate, // if no inner subs — or TemplateHead/Ident/TemplateTail
+            TemplateHead,
+            Ident,
+            TemplateTail,
             TemplateTail,
             Eof
         ]
